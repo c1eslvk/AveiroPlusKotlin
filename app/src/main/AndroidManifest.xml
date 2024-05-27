@@ -13,16 +13,17 @@
         android:theme="@style/Theme.AveiroPlus"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".SignInActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.AveiroPlus">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".SignUpActivity" />
+        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>

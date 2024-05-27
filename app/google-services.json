@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "532879199036",
+    "project_id": "aveiropluskotlin",
+    "storage_bucket": "aveiropluskotlin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:532879199036:android:f36651a62ae106c1506c39",
+        "android_client_info": {
+          "package_name": "com.example.aveiroplus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqY0O3UHQXcLNpb2fSw52SNmaD82G7xkg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

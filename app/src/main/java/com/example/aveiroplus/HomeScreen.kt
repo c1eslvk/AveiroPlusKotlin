@@ -18,9 +18,9 @@ import com.example.aveiroplus.components.Activity
 fun HomeScreen() {
     // Hardcoded list of activities
     val activities = listOf(
-        Activity(photoResId = R.drawable.activity1, description = "Activity 1 description"),
-        Activity(photoResId = R.drawable.activity2, description = "Activity 2 description"),
-        Activity(photoResId = R.drawable.activity3, description = "Activity 3 description")
+        Activity(photoResId = R.drawable.ic_map, description = "Activity 1 description"),
+        Activity(photoResId = R.drawable.ic_map, description = "Activity 2 description"),
+        Activity(photoResId = R.drawable.ic_map, description = "Activity 3 description")
     )
 
     HomeContent(activities = activities)

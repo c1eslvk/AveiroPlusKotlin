@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.aveiroplus.components.BottomNavigationBar
 import com.example.aveiroplus.ui.theme.AveiroPlusTheme
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,20 +39,35 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    var userRole by remember { mutableStateOf<String?>(null) }
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
 
-    Scaffold (
-        bottomBar = { BottomNavigationBar(navController = navController) }
-    ){ innerPadding ->
-       NavHost(
-           navController = navController,
-           startDestination = "home",
-           modifier = Modifier.padding(innerPadding)
-       ) {
-           composable("home") { HomeScreen() }
-           composable("map") { MapScreen() }
-           composable("profile") { ProfileScreen() }
-       }
+    LaunchedEffect(firebaseAuth.currentUser) {
+        firebaseAuth.currentUser?.let { user ->
+            try {
+                val documentSnapshot = firestore.collection("users").document(user.uid).get().await()
+                userRole = documentSnapshot.getString("role")
+            } catch (e: Exception) {
+                // Handle error if needed
+            }
+        }
+    }
+
+    if (userRole != null) {
+        Scaffold(
+            bottomBar = { BottomNavigationBar(navController = navController, userRole = userRole!!) }
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = if (userRole == "ADMIN") "admin" else "home",
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable("home") { HomeScreen() }
+                composable("admin") { AdminScreen() }
+                composable("map") { MapScreen() }
+                composable("profile") { ProfileScreen() }
+            }
+        }
     }
 }
-
-

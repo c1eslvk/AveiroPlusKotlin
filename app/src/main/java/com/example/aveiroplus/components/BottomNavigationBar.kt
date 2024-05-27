@@ -12,14 +12,21 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.aveiroplus.R
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
-    NavigationBar {
-        val items = listOf(
+fun BottomNavigationBar(navController: NavController, userRole: String) {
+    val items = if (userRole == "ADMIN") {
+        listOf(
+            BottomNavItem("admin", "Admin", ImageVector.vectorResource(id = R.drawable.ic_home)),
+            BottomNavItem("profile", "Profile", ImageVector.vectorResource(id = R.drawable.ic_profile))
+        )
+    } else {
+        listOf(
             BottomNavItem("home", "Home", ImageVector.vectorResource(id = R.drawable.ic_home)),
             BottomNavItem("map", "Map", ImageVector.vectorResource(id = R.drawable.ic_map)),
             BottomNavItem("profile", "Profile", ImageVector.vectorResource(id = R.drawable.ic_profile))
         )
+    }
 
+    NavigationBar {
         items.forEach { item ->
             NavigationBarItem(
                 selected = false,

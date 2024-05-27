@@ -4,26 +4,49 @@ import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun ProfileScreen() {
-    // Hardcoded user profile data
-    val userProfile = UserProfile(
-        name = "John Doe",
-        email = "john.doe@example.com",
-        profilePictureUrl = "" // Replace with a valid image URL
-    )
+    val firebaseAuth = FirebaseAuth.getInstance()
+    val currentUser = firebaseAuth.currentUser
+    val context = LocalContext.current
+    val firestore = FirebaseFirestore.getInstance()
 
-    ProfileContent(userProfile = userProfile)
+    val userProfile = remember { mutableStateOf(UserProfile()) }
+
+    LaunchedEffect(currentUser) {
+        currentUser?.let {
+            try {
+                val userId = it.uid
+                val documentSnapshot = firestore.collection("users").document(userId).get().await()
+                val name = documentSnapshot.getString("name") ?: "N/A"
+                val surname = documentSnapshot.getString("surname") ?: "N/A"
+                val email = documentSnapshot.getString("email") ?: "N/A"
+
+                userProfile.value = UserProfile(
+                    name = name,
+                    surname = surname,
+                    email = email
+                )
+            } catch (e: Exception) {
+                // Handle the error (e.g., show a message to the user)
+            }
+        }
+    }
+
+    ProfileContent(userProfile = userProfile.value)
 }
 
 @Composable
@@ -37,8 +60,11 @@ fun ProfileContent(userProfile: UserProfile) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        // The image handling code remains as is
+        val painter = painterResource(id = R.drawable.ic_android_black_24dp) // Fallback drawable resource
+
         Image(
-            painter = painterResource(id = R.drawable.ic_android_black_24dp), // Use drawable resource
+            painter = painter,
             contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(128.dp)
@@ -47,7 +73,7 @@ fun ProfileContent(userProfile: UserProfile) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = userProfile.name,
+            text = "${userProfile.name} ${userProfile.surname}",
             style = MaterialTheme.typography.titleLarge // Use appropriate typography style
         )
         Spacer(modifier = Modifier.height(8.dp))

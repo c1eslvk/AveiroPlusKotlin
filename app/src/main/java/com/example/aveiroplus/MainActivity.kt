@@ -66,7 +66,7 @@ fun MainScreen() {
                 composable("home") { HomeScreen() }
                 composable("admin") { AdminScreen() }
                 composable("map") { MapScreen() }
-                composable("profile") { ProfileScreen() }
+                composable("profile") { ProfileActivity() }
             }
         }
     }

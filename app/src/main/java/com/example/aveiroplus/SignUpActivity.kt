@@ -1,20 +1,13 @@
 package com.example.aveiroplus
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.example.aveiroplus.ui.theme.AveiroPlusTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
 class SignUpActivity : ComponentActivity() {
 
@@ -118,7 +112,8 @@ fun SignUpScreen(
                                 "name" to name,
                                 "surname" to surname,
                                 "email" to email,
-                                "role" to "USER"
+                                "role" to "USER",
+                                "profileImageUrl" to "" // Initialize with empty string
                             )
 
                             if (userId != null) {

@@ -64,7 +64,7 @@ fun MainScreen() {
                 startDestination = if (userRole == "ADMIN") "admin" else "home",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("home") { HomeScreen() }
+                composable("home") { HomeScreen(navController) }
                 composable("admin") { AdminScreen(navController) }
                 composable("map") { MapScreen() }
                 composable("profile") { ProfileContent() }

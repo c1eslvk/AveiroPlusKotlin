@@ -3,27 +3,63 @@ package com.example.aveiroplus
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.aveiroplus.components.Event
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun HomeScreen() {
-    // Hardcoded list of activities
-    val events = listOf<Event>()
+fun HomeScreen(navController: NavController) {
+    var events by remember { mutableStateOf<List<Event>>(emptyList()) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    HomeContent(events = events)
+    // Fetch events from Firestore
+    LaunchedEffect(Unit) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("events")
+            .get()
+            .addOnSuccessListener { result ->
+                events = result.mapNotNull { it.toObject(Event::class.java) }
+                errorMessage = null // Clear any previous error messages
+            }
+            .addOnFailureListener { exception ->
+                errorMessage = "Failed to load events: ${exception.message}"
+            }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        if (errorMessage != null) {
+            Text(text = errorMessage!!, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        } else if (events.isEmpty()) {
+            Text(text = "No events available.", style = MaterialTheme.typography.bodyMedium)
+        } else {
+            HomeContent(events = events, navController = navController)
+        }
+    }
 }
 
 @Composable
-fun HomeContent(events: List<Event>) {
+fun HomeContent(events: List<Event>, navController: NavController) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -31,38 +67,8 @@ fun HomeContent(events: List<Event>) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(events.size) { index ->
-            ActivityItem(event = events[index])
-        }
-    }
-}
-
-@Composable
-fun ActivityItem(event: Event) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-//        Image(
-//            painter = painterResource(id = event.photoResId),
-//            contentDescription = "Activity Photo",
-//            modifier = Modifier
-//                .height(200.dp)
-//                .fillMaxWidth()
-//                .padding(8.dp),
-//            contentScale = ContentScale.Crop
-//        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = event.description,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(8.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { /* No implementation for now */ }) {
-            Text(text = "Register")
+        items(events) { event ->
+            EventItem(event = event, navController = navController)
         }
     }
 }

@@ -21,7 +21,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -77,12 +79,12 @@ fun ProfileContent() {
             loadUserProfile(userProfile, firebaseAuth, firestore, context)
         }
 
-        val painter = rememberImagePainter(
-            data = selectedImageUri ?: userProfile.value.profileImageUrl,
-            builder = {
-                crossfade(true)
-                placeholder(R.drawable.blank_profile)
-            }
+        val painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(LocalContext.current)
+                .data(data = selectedImageUri ?: userProfile.value.profileImageUrl).apply(block = fun ImageRequest.Builder.() {
+                    crossfade(true)
+                    placeholder(R.drawable.blank_profile)
+                }).build()
         )
 
         Image(

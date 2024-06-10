@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -79,10 +80,17 @@ fun MainScreen() {
                 startDestination = if (userRole == "ADMIN") "admin" else "home",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("home") { HomeScreen() }
-                composable("admin") { AdminScreen() }
+                composable("home") { HomeScreen(navController) }
+                composable("admin") { AdminScreen(navController) }
                 composable("map") { MapScreen() }
                 composable("profile") { ProfileContent() }
+                composable("new_event") { NewEventScreen(navController = navController) }
+                composable("event_detail/{eventName}") { backStackEntry ->
+                    EventDetailScreen(
+                        navController = navController,
+                        eventName = backStackEntry.arguments?.getString("eventName") ?: ""
+                    )
+                }
             }
         }
     }

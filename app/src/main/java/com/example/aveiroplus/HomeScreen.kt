@@ -12,22 +12,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.aveiroplus.components.Activity
+import com.example.aveiroplus.components.Event
 
 @Composable
 fun HomeScreen() {
     // Hardcoded list of activities
-    val activities = listOf(
-        Activity(photoResId = R.drawable.ic_map, description = "Activity 1 description"),
-        Activity(photoResId = R.drawable.ic_map, description = "Activity 2 description"),
-        Activity(photoResId = R.drawable.ic_map, description = "Activity 3 description")
-    )
+    val events = listOf<Event>()
 
-    HomeContent(activities = activities)
+    HomeContent(events = events)
 }
 
 @Composable
-fun HomeContent(activities: List<Activity>) {
+fun HomeContent(events: List<Event>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -35,32 +31,32 @@ fun HomeContent(activities: List<Activity>) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(activities.size) { index ->
-            ActivityItem(activity = activities[index])
+        items(events.size) { index ->
+            ActivityItem(event = events[index])
         }
     }
 }
 
 @Composable
-fun ActivityItem(activity: Activity) {
+fun ActivityItem(event: Event) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Image(
-            painter = painterResource(id = activity.photoResId),
-            contentDescription = "Activity Photo",
-            modifier = Modifier
-                .height(200.dp)
-                .fillMaxWidth()
-                .padding(8.dp),
-            contentScale = ContentScale.Crop
-        )
+//        Image(
+//            painter = painterResource(id = event.photoResId),
+//            contentDescription = "Activity Photo",
+//            modifier = Modifier
+//                .height(200.dp)
+//                .fillMaxWidth()
+//                .padding(8.dp),
+//            contentScale = ContentScale.Crop
+//        )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = activity.description,
+            text = event.description,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(8.dp)
         )

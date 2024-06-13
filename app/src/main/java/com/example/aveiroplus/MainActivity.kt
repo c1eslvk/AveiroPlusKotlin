@@ -91,6 +91,12 @@ fun MainScreen() {
                         eventName = backStackEntry.arguments?.getString("eventName") ?: ""
                     )
                 }
+                composable("event_detail_admin/{eventName}") { backStackEntry ->
+                    EventDetailAdminScreen(
+                        navController = navController,
+                        eventName = backStackEntry.arguments?.getString("eventName") ?: ""
+                    )
+                }
             }
         }
     }

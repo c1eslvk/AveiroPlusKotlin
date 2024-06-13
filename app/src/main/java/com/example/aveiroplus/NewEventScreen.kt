@@ -69,6 +69,7 @@ fun NewEventScreen(navController: NavController) {
                 uploadImageToFirebaseStorage(selectedImageUri!!, context) { downloadUrl ->
                     if (downloadUrl != null) {
                         val newEvent = Event(
+                            eventId = UUID.randomUUID().toString(),  // Generate unique event ID
                             eventName = eventName,
                             description = description,
                             availablePlaces = availablePlaces.toInt(),
@@ -113,7 +114,8 @@ fun uploadImageToFirebaseStorage(imageUri: Uri, context: android.content.Context
 fun saveEventToFirestore(event: Event, context: android.content.Context, onSuccess: () -> Unit) {
     val db = FirebaseFirestore.getInstance()
     db.collection("events")
-        .add(event)
+        .document(event.eventId)  // Use eventId as the document ID
+        .set(event)
         .addOnSuccessListener {
             onSuccess()
         }

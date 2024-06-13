@@ -74,17 +74,17 @@ fun AdminContent(events: List<Event>, navController: NavController) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(events) { event ->
-            EventItem(event = event, navController = navController)
+            EventAdminItem(event = event, navController = navController)
         }
     }
 }
 
 @Composable
-fun EventItem(event: Event, navController: NavController) {
+fun EventAdminItem(event: Event, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("event_detail/${event.eventName}") },
+            .clickable { navController.navigate("event_detail_admin/${event.eventName}") },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(

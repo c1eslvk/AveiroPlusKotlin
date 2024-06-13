@@ -1,6 +1,7 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -90,5 +92,29 @@ fun HomeContent(events: List<Event>, navController: NavController) {
         items(events) { event ->
             EventItem(event = event, navController = navController)
         }
+    }
+}
+
+@Composable
+fun EventItem(event: Event, navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { navController.navigate("event_detail/${event.eventName}") },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(event.imageUrl),
+            contentDescription = event.eventName,
+            modifier = Modifier
+                .size(200.dp)
+                .padding(8.dp),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = event.eventName,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }

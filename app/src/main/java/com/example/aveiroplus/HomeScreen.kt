@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 fun HomeScreen(navController: NavController) {
     var events by remember { mutableStateOf<List<Event>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
 
     // Fetch events from Firestore
     LaunchedEffect(Unit) {
@@ -48,12 +50,30 @@ fun HomeScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search events") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
         if (errorMessage != null) {
-            Text(text = errorMessage!!, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(
+                text = errorMessage!!,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
         } else if (events.isEmpty()) {
-            Text(text = "No events available.", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = "No events available.",
+                style = MaterialTheme.typography.bodyMedium
+            )
         } else {
-            HomeContent(events = events, navController = navController)
+            val filteredEvents = events.filter {
+                it.eventName.contains(searchQuery, ignoreCase = true) ||
+                        it.description.contains(searchQuery, ignoreCase = true)
+            }
+            HomeContent(events = filteredEvents, navController = navController)
         }
     }
 }

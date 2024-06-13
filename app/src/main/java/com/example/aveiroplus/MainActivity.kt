@@ -83,7 +83,7 @@ fun MainScreen() {
                 composable("home") { HomeScreen(navController) }
                 composable("admin") { AdminScreen(navController) }
                 composable("map") { MapScreen() }
-                composable("profile") { ProfileContent() }
+                composable("profile") { ProfileContent(navController) }
                 composable("new_event") { NewEventScreen(navController = navController) }
                 composable("event_detail/{eventName}") { backStackEntry ->
                     EventDetailScreen(
@@ -97,6 +97,7 @@ fun MainScreen() {
                         eventName = backStackEntry.arguments?.getString("eventName") ?: ""
                     )
                 }
+                composable("your_events") { YourEventsScreen(firestore, navController) }
             }
         }
     }

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -33,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -93,7 +93,10 @@ fun HomeScreen(navController: NavController) {
                                contentDescription = "Search Icon")
             },
             shape = RoundedCornerShape(25.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(25.dp))
+                .padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         if (errorMessage != null) {
@@ -134,37 +137,41 @@ fun HomeContent(events: List<Event>, navController: NavController) {
 
 @Composable
 fun EventItem(event: Event, navController: NavController) {
-    Column(
+    Surface (
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 4.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-            .background(MaterialTheme.colorScheme.surface)
-            .clip(RoundedCornerShape(8.dp))
-            .shadow(4.dp)
             .clickable { navController.navigate("event_detail/${event.eventId}") },
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(event.imageUrl),
-            contentDescription = event.eventName,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16 / 9f)
-                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = event.eventName,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .padding(4.dp)
-        )
-        Text(
-            text = event.description,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .padding(4.dp)
-        )
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(event.imageUrl),
+                contentDescription = event.eventName,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16 / 9f)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = event.eventName,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+            Text(
+                text = event.description,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+        }
     }
 }

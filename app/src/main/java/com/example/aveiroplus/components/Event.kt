@@ -8,5 +8,8 @@ data class Event(
     val eventName: String = "",
     val description: String = "",
     val availablePlaces: Int = 0,
-    val registeredUsersIds: List<String> = emptyList()
+    val registeredUsersIds: List<String> = emptyList(),
+    val eventDate: Long = 0,
+    val location: String = ""
 )
+

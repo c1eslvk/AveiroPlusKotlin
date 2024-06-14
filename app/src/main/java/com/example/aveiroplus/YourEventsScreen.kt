@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.auth.FirebaseAuth

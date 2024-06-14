@@ -8,9 +8,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DisplayMode
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,8 +30,13 @@ import com.example.aveiroplus.components.Event
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewEventScreen(navController: NavController) {
     var eventName by remember { mutableStateOf("") }
@@ -33,6 +44,9 @@ fun NewEventScreen(navController: NavController) {
     var availablePlaces by remember { mutableStateOf("") }
     var imageUrl by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var location by remember { mutableStateOf("") }
+    var eventDate by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf<Date?>(null) }
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -40,8 +54,23 @@ fun NewEventScreen(navController: NavController) {
         Toast.makeText(context, "Image selected", Toast.LENGTH_SHORT).show()
     }
 
+    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+//    val calendar = Calendar.getInstance()
+//    val datePickerDialog = DatePickerDialog(
+//        context,
+//        { _, year, month, dayOfMonth ->
+//            calendar.set(year, month, dayOfMonth)
+//            eventDate = dateFormatter.format(calendar.time)
+//        },
+//        calendar.get(Calendar.YEAR),
+//        calendar.get(Calendar.MONTH),
+//        calendar.get(Calendar.DAY_OF_MONTH)
+//    )
+
     Column(
         modifier = Modifier
+            .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -61,11 +90,20 @@ fun NewEventScreen(navController: NavController) {
             onValueChange = { availablePlaces = it },
             label = { Text("Available Places") }
         )
+        TextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") }
+        )
+
+        val state = rememberDatePickerState(initialDisplayMode = DisplayMode.Input)
+        DatePicker(state = state, modifier = Modifier.padding(16.dp))
+        eventDate = state.selectedDateMillis.toString()
         Button(onClick = { launcher.launch("image/*") }) {
             Text(text = "Choose Image")
         }
         Button(onClick = {
-            if (eventName.isNotEmpty() && description.isNotEmpty() && availablePlaces.isNotEmpty() && selectedImageUri != null) {
+            if (eventName.isNotEmpty() && description.isNotEmpty() && availablePlaces.isNotEmpty() && selectedImageUri != null && location.isNotEmpty() && eventDate.isNotEmpty()) {
                 uploadImageToFirebaseStorage(selectedImageUri!!, context) { downloadUrl ->
                     if (downloadUrl != null) {
                         val newEvent = Event(
@@ -73,7 +111,9 @@ fun NewEventScreen(navController: NavController) {
                             eventName = eventName,
                             description = description,
                             availablePlaces = availablePlaces.toInt(),
-                            imageUrl = downloadUrl
+                            imageUrl = downloadUrl,
+                            location = location,
+                            eventDate = eventDate.toLong()
                         )
                         saveEventToFirestore(newEvent, context) {
                             Toast.makeText(context, "Event created successfully", Toast.LENGTH_SHORT).show()

@@ -2,21 +2,26 @@ package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +42,8 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -181,6 +188,18 @@ fun EventItem(event: Event, navController: NavController) {
         )
         Text(
             text = event.description,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(4.dp)
+        )
+        Text(
+            text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(4.dp)
+        )
+        Text(
+            text = "Location: ${event.location}",
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier
                 .padding(4.dp)

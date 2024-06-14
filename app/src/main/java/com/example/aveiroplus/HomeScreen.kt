@@ -133,30 +133,6 @@ fun HomeContent(events: List<Event>, navController: NavController) {
         }
     }
 }
-//
-//@Composable
-//fun EventItem(event: Event, navController: NavController) {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .clickable { navController.navigate("event_detail/${event.eventId}") },
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        Image(
-//            painter = rememberAsyncImagePainter(event.imageUrl),
-//            contentDescription = event.eventName,
-//            modifier = Modifier
-//                .size(200.dp)
-//                .padding(8.dp),
-//            contentScale = ContentScale.Crop
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Text(
-//            text = event.eventName,
-//            style = MaterialTheme.typography.bodyMedium
-//        )
-//    }
-//}
 
 @Composable
 fun EventItem(event: Event, navController: NavController) {

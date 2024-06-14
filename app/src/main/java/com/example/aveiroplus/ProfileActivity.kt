@@ -7,26 +7,34 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.auth.FirebaseAuth
@@ -74,9 +82,10 @@ fun ProfileContent(navController: NavController) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(24.dp)
     ) {
         val userProfile = remember { mutableStateOf(UserProfile()) }
         LaunchedEffect(Unit) {
@@ -85,18 +94,20 @@ fun ProfileContent(navController: NavController) {
 
         val painter = rememberAsyncImagePainter(
             ImageRequest.Builder(LocalContext.current)
-                .data(data = selectedImageUri ?: userProfile.value.profileImageUrl).apply(block = fun ImageRequest.Builder.() {
+                .data(data = selectedImageUri ?: userProfile.value.profileImageUrl.takeIf { it.isNotEmpty() } ?: R.drawable.blank_profile)
+                .apply {
                     crossfade(true)
                     placeholder(R.drawable.blank_profile)
-                }).build()
+                }.build()
         )
+
 
         Image(
             painter = painter,
             contentDescription = "Profile Picture",
             modifier = Modifier
-                .size(128.dp)
-                .padding(8.dp)
+                .size(150.dp)
+                .padding(16.dp)
                 .clickable {
                     imageSelectionLauncher.launch("image/*")
                 }
@@ -104,19 +115,19 @@ fun ProfileContent(navController: NavController) {
             contentScale = ContentScale.Crop
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "${userProfile.value.name} ${userProfile.value.surname}",
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = userProfile.value.email,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
         )
         Spacer(modifier = Modifier.height(24.dp))
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = { navController.navigate("your_events") },

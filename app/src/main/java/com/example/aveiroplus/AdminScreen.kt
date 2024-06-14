@@ -1,10 +1,12 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -84,21 +88,32 @@ fun EventItem(event: Event, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("event_detail/${event.eventName}") },
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .clip(RoundedCornerShape(8.dp))
+            .shadow(4.dp)
+            .clickable { navController.navigate("event_detail/${event.eventName}") }
     ) {
         Image(
             painter = rememberAsyncImagePainter(event.imageUrl),
             contentDescription = event.eventName,
             modifier = Modifier
-                .size(200.dp)
-                .padding(8.dp),
+                .fillMaxWidth()
+                .aspectRatio(16 / 9f)
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
             contentScale = ContentScale.Crop
         )
-        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = event.eventName,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(4.dp)
+        )
+        Text(
+            text = event.description,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(4.dp)
         )
     }
 }

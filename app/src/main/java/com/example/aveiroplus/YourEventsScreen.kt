@@ -2,14 +2,21 @@ package com.example.aveiroplus
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,12 +26,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.auth.FirebaseAuth
@@ -71,7 +79,6 @@ fun YourEventsScreen(firestore: FirebaseFirestore, navController: NavController)
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -87,30 +94,76 @@ fun YourEventsScreen(firestore: FirebaseFirestore, navController: NavController)
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         } else {
-            events.value.forEach { event ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 8.dp)
+            YourEventsContent(events = events.value, navController = navController)
+        }
+//        Button(
+//            onClick = { navController.popBackStack() },
+//            modifier = Modifier
+//                .padding(bottom = 16.dp)
+//        ) {
+//            Text(text = "Back")
+//        }
+    }
+
+}
+
+@Composable
+fun YourEventsContent(events: List<Event>, navController: NavController) {
+     Box (
+         modifier = Modifier.fillMaxSize()
+     ){
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(events) { event ->
+                YourEventItem(event = event, navController = navController)
+            }
+            item {
+                Button(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(event.imageUrl),
-                        contentDescription = "Event Image",
-                        modifier = Modifier.size(64.dp),
-                        contentScale = ContentScale.Crop
-                    )
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Text(
-                        text = event.eventName,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Text(text = "Back")
                 }
             }
         }
     }
-    Button(onClick = { navController.popBackStack() }) {
-        Text(text = "Back")
+}
+
+@Composable
+fun YourEventItem(event: Event, navController: NavController) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(vertical = 12.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .shadow(4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .fillMaxWidth()
+            .clickable { navController.navigate("event_detail/${event.eventId}") }
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(event.imageUrl),
+            contentDescription = "Event Image",
+            modifier = Modifier
+                .padding(12.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .size(100.dp),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = event.eventName,
+            style = MaterialTheme.typography.headlineSmall
+        )
     }
 }
 

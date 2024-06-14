@@ -1,11 +1,26 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -76,10 +91,7 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                 color = MaterialTheme.colorScheme.error
             )
         } else if (event == null) {
-            Text(
-                text = "Loading...",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            CircularProgressIndicator()
         } else {
             // Event details UI
             Image(
@@ -88,18 +100,20 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .padding(8.dp),
+                    .clip(MaterialTheme.shapes.medium),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = event?.eventName ?: "",
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Available places: ${event?.availablePlaces}",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -121,23 +135,37 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                     color = MaterialTheme.colorScheme.error
                 )
             } else {
-                Button(onClick = {
-                    // Register user for the event
-                    registerForEvent(event!!, user!!, db) { success, error ->
-                        if (success) {
-                            isRegistered = true
-                            event = event?.copy(availablePlaces = event!!.availablePlaces - 1)
-                        } else {
-                            errorMessage = error
+                Button(
+                    onClick = {
+                        // Register user for the event
+                        registerForEvent(event!!, user!!, db) { success, error ->
+                            if (success) {
+                                isRegistered = true
+                                event = event?.copy(availablePlaces = event!!.availablePlaces - 1)
+                            } else {
+                                errorMessage = error
+                            }
                         }
-                    }
-                }) {
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
                     Text("Register")
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { navController.popBackStack() }) {
+            Button(
+                onClick = { navController.popBackStack() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
                 Text("Go Back")
             }
         }

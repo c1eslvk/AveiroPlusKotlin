@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
@@ -55,7 +56,7 @@ private suspend fun loadUserProfile(userProfile: MutableState<UserProfile>, fire
 }
 
 @Composable
-fun ProfileContent() {
+fun ProfileContent(navController: NavController) {
     val firebaseAuth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val context = LocalContext.current
@@ -113,6 +114,10 @@ fun ProfileContent() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { navController.navigate("your_events") }) {
+            Text("Your Events")
+        }
 
         Button(
             onClick = {

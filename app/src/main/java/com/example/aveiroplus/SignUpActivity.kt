@@ -113,7 +113,8 @@ fun SignUpScreen(
                                 "surname" to surname,
                                 "email" to email,
                                 "role" to "USER",
-                                "profileImageUrl" to "" // Initialize with empty string
+                                "profileImageUrl" to "",
+                                "registeredEventIds" to emptyList<String>()
                             )
 
                             if (userId != null) {

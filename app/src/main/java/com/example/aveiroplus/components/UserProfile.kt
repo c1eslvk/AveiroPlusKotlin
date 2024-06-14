@@ -5,5 +5,6 @@ data class UserProfile(
     val surname: String = "",
     val email: String = "",
     val role: String = "",
-    val profileImageUrl: String = ""
+    val profileImageUrl: String = "",
+    val registeredEventsIds: List<String> = emptyList()
 )

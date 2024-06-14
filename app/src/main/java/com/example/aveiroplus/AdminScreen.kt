@@ -84,7 +84,7 @@ fun AdminContent(events: List<Event>, navController: NavController) {
 }
 
 @Composable
-fun EventItem(event: Event, navController: NavController) {
+fun EventAdminItem(event: Event, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,7 +92,8 @@ fun EventItem(event: Event, navController: NavController) {
             .background(MaterialTheme.colorScheme.surface)
             .clip(RoundedCornerShape(8.dp))
             .shadow(4.dp)
-            .clickable { navController.navigate("event_detail/${event.eventName}") }
+            .clickable { navController.navigate("event_detail_admin/${event.eventName}") },
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = rememberAsyncImagePainter(event.imageUrl),
@@ -103,6 +104,7 @@ fun EventItem(event: Event, navController: NavController) {
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
             contentScale = ContentScale.Crop
         )
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = event.eventName,
             style = MaterialTheme.typography.titleMedium,

@@ -1,174 +1,173 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-
-
+import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
-fun registerUser(eventId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-    val db = FirebaseFirestore.getInstance()
+@Composable
+fun EventDetailsScreen(navController: NavController, eventId: String) {
+    var event by remember { mutableStateOf<Event?>(null) }
+    var user by remember { mutableStateOf<UserProfile?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var debugMessage by remember { mutableStateOf<String?>(null) }
+    var isRegistered by remember { mutableStateOf(false) }
+
     val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
     val currentUser = auth.currentUser
 
-    currentUser?.uid?.let { userId ->
-        val userRef = db.collection("users").document(userId)
-        val eventRef = db.collection("events").document(eventId)
+    LaunchedEffect(eventId) {
+        try {
+            debugMessage = "Fetching event with ID: $eventId"
 
-        db.runTransaction { transaction ->
-            val eventSnapshot = transaction.get(eventRef)
-            val userSnapshot = transaction.get(userRef)
-
-            val registeredUserIds = eventSnapshot.get("registeredUserIds") as? List<String> ?: emptyList()
-            val registeredEventIds = userSnapshot.get("registeredEventIds") as? List<String> ?: emptyList()
-
-            if (registeredUserIds.contains(userId)) {
-                throw Exception("User already registered for this event")
+            // Fetch event details
+            val eventSnapshot = db.collection("events").document(eventId).get().await()
+            if (eventSnapshot.exists()) {
+                event = eventSnapshot.toObject(Event::class.java)
+                debugMessage = "Event loaded: $event"
+            } else {
+                errorMessage = "Event not found"
+                debugMessage = "Event not found with ID: $eventId"
+                return@LaunchedEffect
             }
 
-            if (registeredUserIds.size >= (eventSnapshot.getLong("availablePlaces") ?: 0)) {
-                throw Exception("No available places")
+            // Fetch user details
+            val userSnapshot = db.collection("users").document(currentUser?.uid ?: "").get().await()
+            if (userSnapshot.exists()) {
+                user = userSnapshot.toObject(UserProfile::class.java)
+                debugMessage += "\nUser loaded: $user"
+            } else {
+                errorMessage = "User not found"
+                debugMessage += "\nUser not found with UID: ${currentUser?.uid}"
+                return@LaunchedEffect
             }
 
-            transaction.update(eventRef, "registeredUserIds", FieldValue.arrayUnion(userId))
-            transaction.update(userRef, "registeredEventIds", FieldValue.arrayUnion(eventId))
-        }.addOnSuccessListener {
-            onSuccess()
-        }.addOnFailureListener { e ->
-            onFailure(e)
+            // Check if user is registered for the event
+            isRegistered = user?.registeredEventsIds?.contains(eventId) ?: false
+            debugMessage += "\nUser is registered: $isRegistered"
+        } catch (e: Exception) {
+            errorMessage = "Failed to load data: ${e.message}"
+            debugMessage = "Failed to load data: ${e.message}"
         }
-    } ?: run {
-        onFailure(Exception("User not authenticated"))
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        } else if (event == null) {
+            Text(
+                text = "Loading...",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        } else {
+            // Event details UI
+            Image(
+                painter = rememberAsyncImagePainter(event?.imageUrl),
+                contentDescription = event?.eventName,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(8.dp),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = event?.eventName ?: "",
+                style = MaterialTheme.typography.headlineLarge
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Available places: ${event?.availablePlaces}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = event?.description ?: "",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (isRegistered) {
+                Text(
+                    text = "You are registered",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else if (event?.availablePlaces == 0) {
+                Text(
+                    text = "Event is full",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                Button(onClick = {
+                    // Register user for the event
+                    registerForEvent(event!!, user!!, db) { success, error ->
+                        if (success) {
+                            isRegistered = true
+                            event = event?.copy(availablePlaces = event!!.availablePlaces - 1)
+                        } else {
+                            errorMessage = error
+                        }
+                    }
+                }) {
+                    Text("Register")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Go Back")
+            }
+        }
     }
 }
 
-@Composable
-fun EventDetailScreen(navController: NavController, eventName: String) {
-    var event by remember { mutableStateOf<Event?>(null) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    val auth = FirebaseAuth.getInstance()
+fun registerForEvent(event: Event, user: UserProfile, db: FirebaseFirestore, callback: (Boolean, String?) -> Unit) {
+    val eventRef = db.collection("events").document(event.eventId)
+    val userRef = db.collection("users").document(user.uid)
 
-    // Fetch the event details from Firestore
-    LaunchedEffect(eventName) {
-        val db = FirebaseFirestore.getInstance()
-        db.collection("events")
-            .whereEqualTo("eventName", eventName)
-            .get()
-            .addOnSuccessListener { result ->
-                event = result.documents.firstOrNull()?.toObject(Event::class.java)
-            }
-            .addOnFailureListener {
-                errorMessage = "Failed to load event details"
-            }
-    }
+    db.runTransaction { transaction ->
+        val snapshot = transaction.get(eventRef)
+        val currentEvent = snapshot.toObject(Event::class.java)
 
-    val currentUser = auth.currentUser
-
-    currentUser?.let {
-
-        event?.let {
-            val availablePlaces = it.availablePlaces - it.registeredUsersIds.size
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Display event details
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(it.imageUrl),
-                        contentDescription = it.eventName,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-                Text(
-                    text = it.eventName,
-                    style = MaterialTheme.typography.headlineLarge
-                )
-                Text(
-                    text = "Available Places: $availablePlaces",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = it.description,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                if (availablePlaces > 0) {
-                    Button(onClick = {
-                        registerUser(it.eventId, {
-                            // On Success: Update UI or show success message
-                            // Optionally update event details after registration
-                            val db = FirebaseFirestore.getInstance()
-                            db.collection("events")
-                                .whereEqualTo("eventName", eventName)
-                                .get()
-                                .addOnSuccessListener { result ->
-                                    event = result.documents.firstOrNull()?.toObject(Event::class.java)
-                                }
-                                .addOnFailureListener { e ->
-                                    errorMessage = "Failed to fetch updated event details"
-                                }
-                        }, { e ->
-                            // On Failure: Show error message
-                            errorMessage = e.message
-                        })
-                    }) {
-                        Text(text = "Register")
-                    }
-                } else {
-                    Text(text = "Event is full", color = Color.Red)
-                }
-                Button(onClick = { navController.popBackStack() }) {
-                    Text(text = "Back")
-                }
-                errorMessage?.let { error ->
-                    Text(text = error, color = Color.Red)
-                }
-            }
-        } ?: run {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "Loading...", style = MaterialTheme.typography.bodyMedium)
-            }
+        if (currentEvent == null || currentEvent.availablePlaces == 0) {
+            throw Exception("No available places")
         }
-    } ?: run {
-        Text(text = "User not authenticated", style = MaterialTheme.typography.bodyMedium)
+
+        // Update event
+        val newAvailablePlaces = currentEvent.availablePlaces - 1
+        val newRegisteredUsersIds = currentEvent.registeredUsersIds + user.uid
+        transaction.update(eventRef, "availablePlaces", newAvailablePlaces)
+        transaction.update(eventRef, "registeredUsersIds", newRegisteredUsersIds)
+
+        // Update user
+        val newRegisteredEventsIds = user.registeredEventsIds + event.eventId
+        transaction.update(userRef, "registeredEventsIds", newRegisteredEventsIds)
+    }.addOnSuccessListener {
+        callback(true, null)
+    }.addOnFailureListener { exception ->
+        callback(false, exception.message)
     }
 }

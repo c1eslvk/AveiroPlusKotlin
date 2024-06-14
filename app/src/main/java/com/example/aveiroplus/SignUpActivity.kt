@@ -109,6 +109,7 @@ fun SignUpScreen(
                         if (it.isSuccessful) {
                             val userId = firebaseAuth.currentUser?.uid
                             val user = hashMapOf(
+                                "uid" to userId,
                                 "name" to name,
                                 "surname" to surname,
                                 "email" to email,

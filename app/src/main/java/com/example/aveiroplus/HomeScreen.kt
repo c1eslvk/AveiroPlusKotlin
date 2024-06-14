@@ -42,6 +42,8 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -172,6 +174,18 @@ fun EventItem(event: Event, navController: NavController) {
                 modifier = Modifier
                     .padding(4.dp)
             )
+          Text(
+              text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
+              style = MaterialTheme.typography.bodySmall,
+              modifier = Modifier
+                  .padding(4.dp)
+          )
+          Text(
+              text = "Location: ${event.location}",
+              style = MaterialTheme.typography.bodySmall,
+              modifier = Modifier
+                  .padding(4.dp)
+          )
         }
     }
 }

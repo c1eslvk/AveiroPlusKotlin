@@ -82,6 +82,9 @@ dependencies {
     implementation ("androidx.activity:activity-compose:1.7.2")
 
 
+    implementation("androidx.compose.material3:material3:1.3.0-beta03")
+    implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.8.1-rc")
+    implementation ("io.github.vanpra.compose-material-dialogs:core:0.8.1-rc")
     //Accompanist
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.31.4-beta")
 }

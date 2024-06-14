@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -83,26 +83,21 @@ fun YourEventsScreen(firestore: FirebaseFirestore, navController: NavController)
     ) {
         Text(
             text = "Your Events",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp),
+            color = MaterialTheme.colorScheme.primary
         )
 
         if (events.value.isEmpty()) {
             Text(
                 text = "No registered events",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         } else {
             YourEventsContent(events = events.value, navController = navController)
         }
-//        Button(
-//            onClick = { navController.popBackStack() },
-//            modifier = Modifier
-//                .padding(bottom = 16.dp)
-//        ) {
-//            Text(text = "Back")
-//        }
     }
 
 }
@@ -115,7 +110,6 @@ fun YourEventsContent(events: List<Event>, navController: NavController) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .fillMaxWidth()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -127,7 +121,8 @@ fun YourEventsContent(events: List<Event>, navController: NavController) {
                 Button(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier
-                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 ) {
                     Text(text = "Back")
                 }
@@ -138,32 +133,36 @@ fun YourEventsContent(events: List<Event>, navController: NavController) {
 
 @Composable
 fun YourEventItem(event: Event, navController: NavController) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Surface (
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 4.dp,
         modifier = Modifier
-            .padding(vertical = 12.dp)
-            .background(MaterialTheme.colorScheme.surface)
-            .shadow(4.dp)
-            .clip(RoundedCornerShape(8.dp))
             .fillMaxWidth()
             .clickable { navController.navigate("event_detail/${event.eventId}") }
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(event.imageUrl),
-            contentDescription = "Event Image",
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(12.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .size(100.dp),
-            contentScale = ContentScale.Crop
-        )
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.surface)
+            ) {
+            Image(
+                painter = rememberAsyncImagePainter(event.imageUrl),
+                contentDescription = "Event Image",
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .size(80.dp),
+                contentScale = ContentScale.Crop
+            )
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Text(
-            text = event.eventName,
-            style = MaterialTheme.typography.headlineSmall
-        )
+            Text(
+                text = event.eventName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 

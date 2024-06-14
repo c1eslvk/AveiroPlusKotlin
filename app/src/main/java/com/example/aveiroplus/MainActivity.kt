@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.aveiroplus.components.BottomNavigationBar
 import com.example.aveiroplus.ui.theme.AveiroPlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -85,11 +87,12 @@ fun MainScreen() {
                 composable("map") { MapScreen() }
                 composable("profile") { ProfileContent(navController) }
                 composable("new_event") { NewEventScreen(navController = navController) }
-                composable("event_detail/{eventName}") { backStackEntry ->
-                    EventDetailScreen(
-                        navController = navController,
-                        eventName = backStackEntry.arguments?.getString("eventName") ?: ""
-                    )
+                composable(
+                    route = "event_detail/{eventId}",
+                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
+                    EventDetailsScreen(navController = navController, eventId = eventId)
                 }
                 composable("event_detail_admin/{eventName}") { backStackEntry ->
                     EventDetailAdminScreen(

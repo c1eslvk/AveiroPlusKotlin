@@ -129,7 +129,7 @@ fun EventItem(event: Event, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { navController.navigate("event_detail/${event.eventName}") },
+            .clickable { navController.navigate("event_detail/${event.eventId}") },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(

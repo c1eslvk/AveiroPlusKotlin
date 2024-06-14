@@ -1,6 +1,7 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -123,12 +126,40 @@ fun HomeContent(events: List<Event>, navController: NavController) {
         }
     }
 }
+//
+//@Composable
+//fun EventItem(event: Event, navController: NavController) {
+//    Column(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .clickable { navController.navigate("event_detail/${event.eventId}") },
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Image(
+//            painter = rememberAsyncImagePainter(event.imageUrl),
+//            contentDescription = event.eventName,
+//            modifier = Modifier
+//                .size(200.dp)
+//                .padding(8.dp),
+//            contentScale = ContentScale.Crop
+//        )
+//        Spacer(modifier = Modifier.height(8.dp))
+//        Text(
+//            text = event.eventName,
+//            style = MaterialTheme.typography.bodyMedium
+//        )
+//    }
+//}
 
 @Composable
 fun EventItem(event: Event, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(16.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .clip(RoundedCornerShape(8.dp))
+            .shadow(4.dp)
             .clickable { navController.navigate("event_detail/${event.eventId}") },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -136,14 +167,23 @@ fun EventItem(event: Event, navController: NavController) {
             painter = rememberAsyncImagePainter(event.imageUrl),
             contentDescription = event.eventName,
             modifier = Modifier
-                .size(200.dp)
-                .padding(8.dp),
+                .fillMaxWidth()
+                .aspectRatio(16 / 9f)
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = event.eventName,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(4.dp)
+        )
+        Text(
+            text = event.description,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(4.dp)
         )
     }
 }

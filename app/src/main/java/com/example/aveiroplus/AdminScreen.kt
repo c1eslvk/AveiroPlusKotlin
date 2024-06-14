@@ -78,7 +78,7 @@ fun AdminContent(events: List<Event>, navController: NavController) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(events) { event ->
-            EventItem(event = event, navController = navController)
+            EventAdminItem(event = event, navController = navController)
         }
     }
 }

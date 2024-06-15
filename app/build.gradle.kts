@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -87,4 +88,6 @@ dependencies {
     implementation ("io.github.vanpra.compose-material-dialogs:core:0.8.1-rc")
     //Accompanist
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.31.4-beta")
+
+    implementation("com.google.android.gms:play-services-maps:17.0.0")
 }

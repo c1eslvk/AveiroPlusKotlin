@@ -1,12 +1,20 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
@@ -35,9 +44,11 @@ import kotlinx.coroutines.tasks.await
 fun EventDetailsScreen(navController: NavController, eventId: String) {
     var event by remember { mutableStateOf<Event?>(null) }
     var user by remember { mutableStateOf<UserProfile?>(null) }
+    var registeredUsers by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var debugMessage by remember { mutableStateOf<String?>(null) }
     var isRegistered by remember { mutableStateOf(false) }
+    var isImageDialogOpen by remember { mutableStateOf(false) }
 
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -72,6 +83,18 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             // Check if user is registered for the event
             isRegistered = user?.registeredEventsIds?.contains(eventId) ?: false
             debugMessage += "\nUser is registered: $isRegistered"
+
+            // Fetch profiles of registered users
+            val registeredUsersIds = event?.registeredUsersIds ?: emptyList()
+            val users = registeredUsersIds.mapNotNull { userId ->
+                val registeredUserSnapshot = db.collection("users").document(userId).get().await()
+                if (registeredUserSnapshot.exists()) {
+                    registeredUserSnapshot.toObject(UserProfile::class.java)
+                } else {
+                    null
+                }
+            }
+            registeredUsers = users
         } catch (e: Exception) {
             errorMessage = "Failed to load data: ${e.message}"
             debugMessage = "Failed to load data: ${e.message}"
@@ -100,7 +123,8 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clip(MaterialTheme.shapes.medium),
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable { isImageDialogOpen = true },
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -168,7 +192,84 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             ) {
                 Text("Go Back")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Registered users list
+            Text(
+                text = "Registered Users:",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            LazyColumn {
+                items(registeredUsers) { userProfile ->
+                    UserProfileRow(userProfile)
+                }
+            }
         }
+    }
+
+    if (isImageDialogOpen) {
+        Dialog(onDismissRequest = { isImageDialogOpen = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(event?.imageUrl),
+                    contentDescription = event?.eventName,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable { isImageDialogOpen = false },
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .clickable { isImageDialogOpen = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "X",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UserProfileRow(userProfile: UserProfile) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = userProfile.profileImageUrl.ifEmpty { R.drawable.blank_profile }
+            ),
+            contentDescription = "${userProfile.name} ${userProfile.surname}",
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = "${userProfile.name} ${userProfile.surname}",
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 

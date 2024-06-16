@@ -69,7 +69,7 @@ fun AveiroPlusTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = Color.Transparent.toArgb()
             window.navigationBarColor = transparentPrimaryColor // Use transparent color
             WindowCompat.setDecorFitsSystemWindows(window, false)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
@@ -83,3 +83,4 @@ fun AveiroPlusTheme(
         content = content
     )
 }
+

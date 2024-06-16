@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.aveiroplus.components.BottomNavigationBar
+import com.example.aveiroplus.components.TopBar
 import com.example.aveiroplus.ui.theme.AveiroPlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
@@ -80,6 +81,7 @@ fun MainScreen() {
 
     if (userRole != null) {
         Scaffold(
+            topBar = { TopBar() },
             bottomBar = { BottomNavigationBar(navController = navController, userRole = userRole!!) }
         ) { innerPadding ->
             NavHost(

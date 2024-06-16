@@ -1,8 +1,10 @@
 package com.example.aveiroplus.components
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -26,7 +28,12 @@ fun BottomNavigationBar(navController: NavController, userRole: String) {
         )
     }
 
-    NavigationBar {
+    val colorScheme = MaterialTheme.colorScheme
+
+    NavigationBar(
+        containerColor = colorScheme.primary, // Use theme color
+        contentColor = colorScheme.onPrimary // Use theme color
+    ) {
         items.forEach { item ->
             NavigationBarItem(
                 selected = false,
@@ -40,7 +47,13 @@ fun BottomNavigationBar(navController: NavController, userRole: String) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = colorScheme.onPrimary,
+                    unselectedIconColor = colorScheme.onSurface,
+                    selectedTextColor = colorScheme.onPrimary,
+                    unselectedTextColor = colorScheme.onSurface
+                )
             )
         }
     }

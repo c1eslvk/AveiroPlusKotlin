@@ -1,6 +1,8 @@
 package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
@@ -45,6 +48,7 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var debugMessage by remember { mutableStateOf<String?>(null) }
     var isRegistered by remember { mutableStateOf(false) }
+    var isImageDialogOpen by remember { mutableStateOf(false) }
 
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -119,7 +123,8 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clip(MaterialTheme.shapes.medium),
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable { isImageDialogOpen = true },
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -203,6 +208,43 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             }
         }
     }
+
+    if (isImageDialogOpen) {
+        Dialog(onDismissRequest = { isImageDialogOpen = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(event?.imageUrl),
+                    contentDescription = event?.eventName,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable { isImageDialogOpen = false },
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .clickable { isImageDialogOpen = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "X",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -230,7 +272,6 @@ fun UserProfileRow(userProfile: UserProfile) {
         )
     }
 }
-
 
 fun registerForEvent(event: Event, user: UserProfile, db: FirebaseFirestore, callback: (Boolean, String?) -> Unit) {
     val eventRef = db.collection("events").document(event.eventId)

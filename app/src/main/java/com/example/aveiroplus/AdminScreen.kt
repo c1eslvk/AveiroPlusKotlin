@@ -15,8 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -92,52 +91,55 @@ fun AdminContent(events: List<Event>, navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventAdminItem(event: Event, navController: NavController) {
-    Column(
+    Surface (
+        shape = RoundedCornerShape(12.dp),
+        shadowElevation = 4.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-            .background(MaterialTheme.colorScheme.surface)
-            .clip(RoundedCornerShape(8.dp))
-            .shadow(4.dp)
             .clickable { navController.navigate("event_detail_admin/${event.eventId}") },
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(event.imageUrl),
-            contentDescription = event.eventName,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16 / 9f)
-                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = event.eventName,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier
-                .padding(4.dp)
-        )
-        Text(
-            text = event.description,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .padding(4.dp)
-        )
-        Text(
-            text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .padding(4.dp)
-        )
-        Text(
-            text = "Location: ${event.location}",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .padding(4.dp)
-        )
+                .padding(16.dp)
+                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp)),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(event.imageUrl),
+                contentDescription = event.eventName,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16 / 9f)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = event.eventName,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+            Text(
+                text = event.description,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+            Text(
+                text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+            Text(
+                text = "Location: ${event.location}",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+        }
     }
 }

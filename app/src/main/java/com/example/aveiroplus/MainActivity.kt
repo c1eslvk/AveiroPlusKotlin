@@ -25,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.aveiroplus.components.BottomNavigationBar
+import com.example.aveiroplus.components.TopBar
 import com.example.aveiroplus.ui.theme.AveiroPlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
@@ -83,6 +84,7 @@ fun MainScreen() {
 
     if (userRole != null) {
         Scaffold(
+            topBar = { TopBar() },
             bottomBar = { BottomNavigationBar(navController = navController, userRole = userRole!!) }
         ) { innerPadding ->
             NavHost(
@@ -102,11 +104,12 @@ fun MainScreen() {
                     val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
                     EventDetailsScreen(navController = navController, eventId = eventId)
                 }
-                composable("event_detail_admin/{eventName}") { backStackEntry ->
-                    EventDetailAdminScreen(
-                        navController = navController,
-                        eventName = backStackEntry.arguments?.getString("eventName") ?: ""
-                    )
+                composable(
+                    route = "event_detail_admin/{eventId}",
+                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
+                    EventDetailAdminScreen(navController = navController, eventId = eventId)
                 }
                 composable("your_events") { YourEventsScreen(firestore, navController) }
             }

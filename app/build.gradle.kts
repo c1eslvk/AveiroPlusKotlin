@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.aveiroplus"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -68,6 +68,9 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:2.0.0")
     implementation("com.google.firebase:firebase-firestore-ktx:25.0.0")
     implementation("com.google.firebase:firebase-storage-ktx:21.0.0")
+    implementation("androidx.compose.ui:ui-viewbinding:1.6.8")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("androidx.appcompat:appcompat:1.7.0")
     //implementation("androidx.compose.material3:material3-android:1.2.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -90,4 +93,8 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.31.4-beta")
 
     implementation("com.google.android.gms:play-services-maps:17.0.0")
+
+    implementation("com.google.maps.android:maps-compose:4.4.1")
+    implementation("com.google.maps.android:android-maps-utils:3.8.2")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 }

@@ -2,11 +2,17 @@ package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +41,7 @@ import kotlinx.coroutines.tasks.await
 fun EventDetailsScreen(navController: NavController, eventId: String) {
     var event by remember { mutableStateOf<Event?>(null) }
     var user by remember { mutableStateOf<UserProfile?>(null) }
+    var registeredUsers by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var debugMessage by remember { mutableStateOf<String?>(null) }
     var isRegistered by remember { mutableStateOf(false) }
@@ -72,6 +79,18 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             // Check if user is registered for the event
             isRegistered = user?.registeredEventsIds?.contains(eventId) ?: false
             debugMessage += "\nUser is registered: $isRegistered"
+
+            // Fetch profiles of registered users
+            val registeredUsersIds = event?.registeredUsersIds ?: emptyList()
+            val users = registeredUsersIds.mapNotNull { userId ->
+                val registeredUserSnapshot = db.collection("users").document(userId).get().await()
+                if (registeredUserSnapshot.exists()) {
+                    registeredUserSnapshot.toObject(UserProfile::class.java)
+                } else {
+                    null
+                }
+            }
+            registeredUsers = users
         } catch (e: Exception) {
             errorMessage = "Failed to load data: ${e.message}"
             debugMessage = "Failed to load data: ${e.message}"
@@ -168,9 +187,50 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             ) {
                 Text("Go Back")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Registered users list
+            Text(
+                text = "Registered Users:",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            LazyColumn {
+                items(registeredUsers) { userProfile ->
+                    UserProfileRow(userProfile)
+                }
+            }
         }
     }
 }
+
+@Composable
+fun UserProfileRow(userProfile: UserProfile) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(
+                model = userProfile.profileImageUrl.ifEmpty { R.drawable.blank_profile }
+            ),
+            contentDescription = "${userProfile.name} ${userProfile.surname}",
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = "${userProfile.name} ${userProfile.surname}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
 
 fun registerForEvent(event: Event, user: UserProfile, db: FirebaseFirestore, callback: (Boolean, String?) -> Unit) {
     val eventRef = db.collection("events").document(event.eventId)

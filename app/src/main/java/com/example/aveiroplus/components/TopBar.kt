@@ -5,7 +5,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,18 +20,24 @@ fun TopBar() {
     val isDarkTheme = isSystemInDarkTheme()
     val logoResource = if (isDarkTheme) R.drawable.logodark else R.drawable.logo
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+    Surface (
+        color = MaterialTheme.colorScheme.primary
     ) {
-        Image(
-            painter = painterResource(id = logoResource),
-            contentDescription = "Logo",
+        Surface(
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
             modifier = Modifier
-                .height(48.dp)
-                .width(169.dp)
-                .padding(horizontal = 16.dp)
-        )
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+                .statusBarsPadding()
+        ) {
+            Image(
+                painter = painterResource(id = logoResource),
+                contentDescription = "Logo",
+                modifier = Modifier
+                    .height(48.dp)
+                    .width(169.dp)
+                    .padding(horizontal = 16.dp)
+            )
+        }
     }
 }

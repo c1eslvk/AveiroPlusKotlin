@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.update
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.UserProfile
+import com.google.firebase.firestore.FieldPath
+import kotlinx.coroutines.tasks.await
 
 class MapViewModel: ViewModel()  {
     private val _uiState = MutableStateFlow(MapUiState())
@@ -35,6 +38,28 @@ class MapViewModel: ViewModel()  {
                 }
             }
 
+    }
+
+    suspend fun getUserEvents(eventsIds: List<String>){
+        val events = mutableListOf<Event>()
+
+        for (eventId in eventsIds) {
+            try {
+                val eventDocument = firestore.collection("events").document(eventId).get().await()
+                val eventName = eventDocument.getString("eventName") ?: "N/A"
+                val imageUrl = eventDocument.getString("imageUrl") ?: ""
+
+                val event = Event(
+                    eventId = eventId,
+                    eventName = eventName,
+                    imageUrl = imageUrl
+                )
+                events.add(event)
+            } catch (e: Exception) { }
+        }
+        _uiState.update {
+            it.copy(eventsToShow = events)
+        }
     }
 
     fun getYourMarker() {

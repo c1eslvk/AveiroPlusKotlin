@@ -4,5 +4,5 @@ data class MapMarker(
     val markerId: String = "",
     val lat: Double = 0.0,
     val long: Double = 0.0,
-    val relatedUser: UserProfile,
+    val relatedUser: UserProfile = UserProfile(),
 ) {}

@@ -58,9 +58,9 @@ class ForegroundLocationService(
     @Throws
     fun listenToLocation(){
 
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
-            .build()
-            if (!hasLocationPermission()) throw NoPermissionsException
+    val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
+        .build()
+        if (!hasLocationPermission()) throw NoPermissionsException
 
 
         client.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())

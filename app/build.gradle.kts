@@ -97,4 +97,5 @@ dependencies {
     implementation("com.google.maps.android:maps-compose:4.4.1")
     implementation("com.google.maps.android:android-maps-utils:3.8.2")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 }

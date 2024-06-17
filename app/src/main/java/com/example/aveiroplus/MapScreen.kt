@@ -2,12 +2,16 @@ package com.example.aveiroplus
 
 import android.view.View
 import android.widget.ImageView
+import android.widget.ScrollView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,10 +19,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -33,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
@@ -111,6 +120,9 @@ fun CreateMarker(markerData: MapMarker, uiState: MapUiState) {
         onClick = {
             mapViewModel.assignUserToView(markerData.relatedUser)
             mapViewModel.changeUserVisibility(uiState.isInfoVisible)
+            runBlocking {
+                mapViewModel.getUserEvents(markerData.relatedUser.registeredEventsIds)
+            }
             return@AdvancedMarker false
         })
 }
@@ -152,9 +164,9 @@ fun ShowUserInfo(usr: UserProfile, uiState: MapUiState) {
                 modifier = Modifier
                     .size(50.dp)
                     .padding(16.dp)
-                    .clip(CircleShape).
-                    clickable {
-                      mapViewModel.changeUserVisibility(uiState.isInfoVisible)
+                    .clip(CircleShape)
+                    .clickable {
+                        mapViewModel.changeUserVisibility(uiState.isInfoVisible)
                     },
                 contentScale = ContentScale.Crop,
 
@@ -170,6 +182,57 @@ fun ShowUserInfo(usr: UserProfile, uiState: MapUiState) {
             contentScale = ContentScale.Crop
         )
         Text(text = usr.name + " " + usr.surname)
+        Spacer(modifier = Modifier.width(100.dp))
+        Surface(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val scrollState = rememberScrollState()
+            ScrollableColumn(scrollState = scrollState, uiState)
+        }
 
+    }
+}
+
+@Composable
+fun ScrollableColumn(scrollState: ScrollState, uiState: MapUiState){
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
+        for(event in uiState.eventsToShow) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(event.imageUrl),
+                    contentDescription = "Event Image",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .size(100.dp),
+                    contentScale = ContentScale.Crop
+                )
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ){
+                    Text(text = event.eventName,
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        color = MaterialTheme.colorScheme.primary )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(text = event.location,
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        color = MaterialTheme.colorScheme.secondary)
+                }
+
+                
+            }
+        }
     }
 }

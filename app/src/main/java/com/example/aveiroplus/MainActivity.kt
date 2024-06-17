@@ -3,15 +3,23 @@ package com.example.aveiroplus
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.aveiroplus.components.BottomNavigationBar
+import com.example.aveiroplus.components.TopBar
 import com.example.aveiroplus.ui.theme.AveiroPlusTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
@@ -27,10 +36,11 @@ import kotlinx.coroutines.tasks.await
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             AveiroPlusTheme {
-
                 //check if system is in darkmode
                 val isSystemInDarkMode = isSystemInDarkTheme()
                 val systemController = rememberSystemUiController()
@@ -41,7 +51,6 @@ class MainActivity : ComponentActivity() {
                         darkIcons = !isSystemInDarkMode
                     )
                 }
-
 
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -75,7 +84,9 @@ fun MainScreen() {
 
     if (userRole != null) {
         Scaffold(
-            bottomBar = { BottomNavigationBar(navController = navController, userRole = userRole!!) }
+            topBar = { TopBar() },
+            bottomBar = { BottomNavigationBar(navController = navController, userRole = userRole!!) },
+            contentWindowInsets = WindowInsets.systemBars // Add this line to respect system bars
         ) { innerPadding ->
             NavHost(
                 navController = navController,
@@ -94,14 +105,16 @@ fun MainScreen() {
                     val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
                     EventDetailsScreen(navController = navController, eventId = eventId)
                 }
-                composable("event_detail_admin/{eventName}") { backStackEntry ->
-                    EventDetailAdminScreen(
-                        navController = navController,
-                        eventName = backStackEntry.arguments?.getString("eventName") ?: ""
-                    )
+                composable(
+                    route = "event_detail_admin/{eventId}",
+                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val eventId = backStackEntry.arguments?.getString("eventId") ?: return@composable
+                    EventDetailAdminScreen(navController = navController, eventId = eventId)
                 }
                 composable("your_events") { YourEventsScreen(firestore, navController) }
             }
         }
     }
 }
+

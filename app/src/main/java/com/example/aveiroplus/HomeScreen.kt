@@ -58,6 +58,7 @@ fun HomeScreen(navController: NavController) {
             .get()
             .addOnSuccessListener { result ->
                 events = result.mapNotNull { it.toObject(Event::class.java) }
+                    .sortedBy { it.eventDate } // Sort events by date
                 errorMessage = null // Clear any previous error messages
             }
             .addOnFailureListener { exception ->
@@ -82,8 +83,8 @@ fun HomeScreen(navController: NavController) {
                 unfocusedIndicatorColor = Color.Transparent
             ),
             trailingIcon = {
-                           Icon(imageVector = Icons.Default.Search,
-                               contentDescription = "Search Icon")
+                Icon(imageVector = Icons.Default.Search,
+                    contentDescription = "Search Icon")
             },
             shape = RoundedCornerShape(25.dp),
             modifier = Modifier
@@ -165,18 +166,18 @@ fun EventItem(event: Event, navController: NavController) {
                 modifier = Modifier
                     .padding(4.dp)
             )
-          Text(
-              text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
-              style = MaterialTheme.typography.bodySmall,
-              modifier = Modifier
-                  .padding(4.dp)
-          )
-          Text(
-              text = "Location: ${event.location}",
-              style = MaterialTheme.typography.bodySmall,
-              modifier = Modifier
-                  .padding(4.dp)
-          )
+            Text(
+                text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
+            Text(
+                text = "Location: ${event.location}",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .padding(4.dp)
+            )
         }
     }
 }

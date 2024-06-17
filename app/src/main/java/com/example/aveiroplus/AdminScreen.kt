@@ -49,6 +49,7 @@ fun AdminScreen(navController: NavController) {
             .get()
             .addOnSuccessListener { result ->
                 events = result.mapNotNull { it.toObject(Event::class.java) }
+                    .sortedBy { it.eventDate } // Sort events by date
                 errorMessage = null // Clear any previous error messages
             }
             .addOnFailureListener { exception ->

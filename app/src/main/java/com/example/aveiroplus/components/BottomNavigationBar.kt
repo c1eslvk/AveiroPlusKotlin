@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +40,7 @@ fun BottomNavigationBar(navController: NavController, userRole: String) {
     val currentDestination = navBackStackEntry?.destination
 
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary, // Use theme color
-        contentColor = MaterialTheme.colorScheme.onPrimary // Use theme color
+        containerColor = MaterialTheme.colorScheme.background,
     ) {
         items.forEach { item ->
             val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
@@ -50,14 +50,12 @@ fun BottomNavigationBar(navController: NavController, userRole: String) {
                 label = {
                     Text(
                         item.title,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                     )
                 },
                 icon = {
                     Icon(
                         item.icon,
                         contentDescription = item.title,
-                        tint = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
                     )
                },
                 onClick = {
@@ -69,7 +67,16 @@ fun BottomNavigationBar(navController: NavController, userRole: String) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                colors = NavigationBarItemColors(
+                    selectedIconColor = MaterialTheme.colorScheme.tertiary,
+                    selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                    selectedIndicatorColor = MaterialTheme.colorScheme.background,
+                    unselectedIconColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                    unselectedTextColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                    disabledIconColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                    disabledTextColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f)
+                )
             )
         }
     }

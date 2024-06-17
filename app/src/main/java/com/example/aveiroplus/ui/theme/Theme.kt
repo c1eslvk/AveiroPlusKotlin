@@ -26,7 +26,8 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = DarkOnSecondary,
     onTertiary = DarkOnTertiary,
     onBackground = DarkOnBackground,
-    onSurface = DarkOnSurface
+    onSurface = DarkOnSurface,
+    error = DarkError
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -39,7 +40,8 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = LightOnSecondary,
     onTertiary = LightOnTertiary,
     onBackground = LightOnBackground,
-    onSurface = LightOnSurface
+    onSurface = LightOnSurface,
+    error = LightError
 )
 
 fun Color.withAlpha(alpha: Float): Int {

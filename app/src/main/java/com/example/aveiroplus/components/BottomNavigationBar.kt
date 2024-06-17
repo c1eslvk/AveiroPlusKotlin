@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.example.aveiroplus.R
 
@@ -29,14 +30,17 @@ fun BottomNavigationBar(navController: NavController, userRole: String) {
     }
 
     val colorScheme = MaterialTheme.colorScheme
+    val currentDestination = navController.currentBackStackEntry?.destination
 
     NavigationBar(
         containerColor = colorScheme.primary, // Use theme color
         contentColor = colorScheme.onPrimary // Use theme color
     ) {
         items.forEach { item ->
+            val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+
             NavigationBarItem(
-                selected = false,
+                selected = isSelected,
                 label = { Text(item.title) },
                 icon = { Icon(item.icon, contentDescription = item.title) },
                 onClick = {

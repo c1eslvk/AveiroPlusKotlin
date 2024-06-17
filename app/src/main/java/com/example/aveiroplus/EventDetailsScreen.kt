@@ -131,7 +131,7 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             Text(
                 text = event?.eventName ?: "",
                 style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -199,7 +199,7 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             Text(
                 text = "Registered Users:",
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             LazyColumn {
                 items(registeredUsers) { userProfile ->

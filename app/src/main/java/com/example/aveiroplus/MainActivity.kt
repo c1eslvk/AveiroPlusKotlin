@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startActivity
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity(){
 
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
         val locationService = ForegroundLocationService(applicationContext)
         locationService.listenToLocation()
         setContent {
@@ -105,7 +107,7 @@ fun MainScreen() {
         Scaffold(
             topBar = { TopBar() },
             bottomBar = { BottomNavigationBar(navController = navController, userRole = userRole!!) },
-            contentWindowInsets = WindowInsets.systemBars // Add this line to respect system bars
+            contentWindowInsets = WindowInsets.systemBars
         ) { innerPadding ->
             NavHost(
                 navController = navController,

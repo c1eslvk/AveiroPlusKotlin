@@ -89,7 +89,7 @@ fun HomeScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(25.dp))
-                .padding(horizontal = 16.dp)
+//                .padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         if (errorMessage != null) {

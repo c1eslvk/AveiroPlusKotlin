@@ -86,7 +86,7 @@ fun YourEventsScreen(firestore: FirebaseFirestore, navController: NavController)
             text = "Your Events",
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(bottom = 16.dp),
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         if (events.value.isEmpty()) {

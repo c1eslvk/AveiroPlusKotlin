@@ -22,6 +22,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,7 +38,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.ktx.model.cameraPosition
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,11 +60,15 @@ fun NewEventScreen(navController: NavController) {
     var location by remember { mutableStateOf("") }
     var eventDate by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf<Date?>(null) }
+    var lat by remember{ mutableDoubleStateOf(0.0) }
+    var long by remember { mutableDoubleStateOf(0.0)  }
     val context = LocalContext.current
 
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 10f)
+    val defaultCameraPositionState = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 15f)
+    val cameraPositionState = rememberCameraPositionState{
+        position = defaultCameraPositionState
     }
+    val defaultLoationState = LatLng(0.0, 0.0)
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         selectedImageUri = uri
@@ -109,13 +118,23 @@ fun NewEventScreen(navController: NavController) {
             label = { Text("Location") }
         )
         Surface(
-            modifier = Modifier.fillMaxWidth().height(300.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
         ) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
             ) {
-
+                Marker(
+                    state = rememberMarkerState(position = defaultLoationState),
+                    draggable = true,
+                    onClick = {
+                        lat = it.position.latitude
+                        long = it.position.longitude
+                        return@Marker false
+                    }
+                )
             }
         }
 
@@ -136,7 +155,9 @@ fun NewEventScreen(navController: NavController) {
                             availablePlaces = availablePlaces.toInt(),
                             imageUrl = downloadUrl,
                             location = location,
-                            eventDate = eventDate.toLong()
+                            eventDate = eventDate.toLong(),
+                            lat = lat,
+                            long = long
                         )
                         saveEventToFirestore(newEvent, context) {
                             Toast.makeText(context, "Event created successfully", Toast.LENGTH_SHORT).show()

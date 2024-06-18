@@ -4,12 +4,19 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DisplayMode
@@ -18,27 +25,44 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.aveiroplus.components.Event
+import com.example.aveiroplus.uiStates.NewEventUiState
+import com.example.aveiroplus.viewModels.NewEventViewModel
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
 
+val newEventViewModel = NewEventViewModel()
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewEventScreen(navController: NavController) {
+
+    val newEventUiState by newEventViewModel.uiState.collectAsState()
+
     var eventName by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var availablePlaces by remember { mutableStateOf("") }
@@ -47,7 +71,14 @@ fun NewEventScreen(navController: NavController) {
     var location by remember { mutableStateOf("") }
     var eventDate by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf<Date?>(null) }
+    var canShowMarker by remember {mutableStateOf(false)}
     val context = LocalContext.current
+
+    val defaultCameraPositionState = CameraPosition.fromLatLngZoom(LatLng(0.0, 0.0), 15f)
+    val cameraPositionState = rememberCameraPositionState{
+        position = defaultCameraPositionState
+    }
+    val defaultLoationState = LatLng(0.0, 0.0)
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         selectedImageUri = uri
@@ -73,7 +104,8 @@ fun NewEventScreen(navController: NavController) {
             .verticalScroll(rememberScrollState())
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TextField(
             value = eventName,
@@ -95,6 +127,7 @@ fun NewEventScreen(navController: NavController) {
             onValueChange = { location = it },
             label = { Text("Location") }
         )
+        mapComponent(viewModel = newEventViewModel, latitude = newEventUiState.latitude, longitude = newEventUiState.longitude, cameraPositionState)
 
         val state = rememberDatePickerState(initialDisplayMode = DisplayMode.Input)
         DatePicker(state = state, modifier = Modifier.padding(16.dp))
@@ -113,7 +146,9 @@ fun NewEventScreen(navController: NavController) {
                             availablePlaces = availablePlaces.toInt(),
                             imageUrl = downloadUrl,
                             location = location,
-                            eventDate = eventDate.toLong()
+                            eventDate = eventDate.toLong(),
+                            lat = newEventUiState.latitude,
+                            long = newEventUiState.longitude
                         )
                         saveEventToFirestore(newEvent, context) {
                             Toast.makeText(context, "Event created successfully", Toast.LENGTH_SHORT).show()
@@ -128,6 +163,34 @@ fun NewEventScreen(navController: NavController) {
             }
         }) {
             Text(text = "Add Event")
+        }
+
+    }
+}
+
+@Composable
+fun mapComponent(viewModel: NewEventViewModel, latitude: Double, longitude: Double, cameraPositionState: CameraPositionState) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .scrollable(
+                state = rememberScrollState(),
+                enabled = false,
+                orientation = Orientation.Vertical
+            )
+    ) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            onMapClick = {
+                viewModel.updateCoords(lat = it.latitude, long = it.longitude)
+            }
+        ) {
+                Marker(
+                    state = MarkerState(position = LatLng(latitude, longitude)),
+                    draggable = true,
+                )
         }
     }
 }

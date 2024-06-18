@@ -25,8 +25,14 @@ class MapViewModel: ViewModel()  {
     private val firestore = FirebaseFirestore.getInstance()
 
     init {
+        _uiState.update {
+            it.copy(isMapReady = false)
+        }
         getMapMarkers()
         getYourMarker()
+        _uiState.update {
+            it.copy(isMapReady = true)
+        }
     }
     fun getMapMarkers() {
         var newMarkers by mutableStateOf<List<MapMarker>>(emptyList())

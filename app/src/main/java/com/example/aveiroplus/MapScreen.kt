@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -85,28 +87,32 @@ fun MapScreen() {
     }
 
 
-    Surface(
+    Box(
 
     )
     {
-        GoogleMap(
-            cameraPositionState = cameraPositionState,
-            onMapClick = { mapViewModel.changeUserVisibility(mapUiState.isInfoVisible)}
-        ) {
+        if (mapUiState.isMapReady){
+            GoogleMap(
+                cameraPositionState = cameraPositionState,
+                onMapClick = { mapViewModel.changeUserVisibility(mapUiState.isInfoVisible) }
+            ) {
 
-            for (marker in mapUiState.markers) {
-                CreateMarker(markerData = marker, uiState = mapUiState)
+                for (marker in mapUiState.markers) {
+                    CreateMarker(markerData = marker, uiState = mapUiState)
+                }
+
+
             }
-
-
-        }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            if (mapUiState.isInfoVisible) {
-                ShowUserInfo(mapUiState.userToShow, mapUiState)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                if (mapUiState.isInfoVisible) {
+                    ShowUserInfo(mapUiState.userToShow, mapUiState)
+                }
             }
+        } else {
+            CircularProgressIndicator(modifier = Modifier.wrapContentSize().align(Alignment.Center))
         }
 
     }

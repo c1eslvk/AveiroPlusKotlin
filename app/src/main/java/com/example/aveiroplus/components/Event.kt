@@ -12,6 +12,7 @@ data class Event(
     val eventDate: Long = 0,
     val location: String = "",
     val lat: Double = 0.0,
-    val long: Double = 0.0
+    val long: Double = 0.0,
+    val price: Double = 0.0
 )
 

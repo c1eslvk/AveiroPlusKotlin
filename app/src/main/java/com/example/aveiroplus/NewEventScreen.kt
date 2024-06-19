@@ -70,6 +70,7 @@ fun NewEventScreen(navController: NavController) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var location by remember { mutableStateOf("") }
     var eventDate by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf<Date?>(null) }
     var canShowMarker by remember {mutableStateOf(false)}
     val context = LocalContext.current
@@ -127,6 +128,11 @@ fun NewEventScreen(navController: NavController) {
             onValueChange = { location = it },
             label = { Text("Location") }
         )
+        TextField(
+            value = price,
+            onValueChange = { price = it },
+            label = { Text("Price") }
+        )
         mapComponent(viewModel = newEventViewModel, latitude = newEventUiState.latitude, longitude = newEventUiState.longitude, cameraPositionState)
 
         val state = rememberDatePickerState(initialDisplayMode = DisplayMode.Input)
@@ -148,7 +154,8 @@ fun NewEventScreen(navController: NavController) {
                             location = location,
                             eventDate = eventDate.toLong(),
                             lat = newEventUiState.latitude,
-                            long = newEventUiState.longitude
+                            long = newEventUiState.longitude,
+                            price = price.toDouble()
                         )
                         saveEventToFirestore(newEvent, context) {
                             Toast.makeText(context, "Event created successfully", Toast.LENGTH_SHORT).show()

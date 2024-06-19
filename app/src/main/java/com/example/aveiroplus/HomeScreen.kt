@@ -42,14 +42,15 @@ import com.example.aveiroplus.components.Event
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 @Composable
 fun HomeScreen(navController: NavController) {
     var events by remember { mutableStateOf<List<Event>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    val isDarkTheme = isSystemInDarkTheme()
-    val logoResource = if (isDarkTheme) R.drawable.logodark else R.drawable.logo
 
     // Fetch events from Firestore
     LaunchedEffect(Unit) {
@@ -58,6 +59,10 @@ fun HomeScreen(navController: NavController) {
             .get()
             .addOnSuccessListener { result ->
                 events = result.mapNotNull { it.toObject(Event::class.java) }
+                    .filter { event ->
+                        // Filter out events older than today
+                        event.eventDate > System.currentTimeMillis()
+                    }
                     .sortedBy { it.eventDate } // Sort events by date
                 errorMessage = null // Clear any previous error messages
             }
@@ -90,7 +95,6 @@ fun HomeScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(25.dp))
-//                .padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         if (errorMessage != null) {
@@ -131,53 +135,55 @@ fun HomeContent(events: List<Event>, navController: NavController) {
 
 @Composable
 fun EventItem(event: Event, navController: NavController) {
-    Surface (
-        shape = RoundedCornerShape(12.dp),
-        shadowElevation = 4.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { navController.navigate("event_detail/${event.eventId}") },
-    ) {
-        Column(
+    val eventDate = Instant.ofEpochMilli(event.eventDate)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+
+    if (eventDate >= LocalDate.now()) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            shadowElevation = 4.dp,
             modifier = Modifier
-                .padding(16.dp)
-                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp)),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .clickable { navController.navigate("event_detail/${event.eventId}") },
         ) {
-            Image(
-                painter = rememberAsyncImagePainter(event.imageUrl),
-                contentDescription = event.eventName,
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16 / 9f)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = event.eventName,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .padding(4.dp)
-            )
-            Text(
-                text = event.description,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .padding(4.dp)
-            )
-            Text(
-                text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .padding(4.dp)
-            )
-            Text(
-                text = "Location: ${event.location}",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .padding(4.dp)
-            )
+                    .padding(16.dp)
+                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp)),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(event.imageUrl),
+                    contentDescription = event.eventName,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16 / 9f)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = event.eventName,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(4.dp)
+                )
+                Text(
+                    text = event.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(4.dp)
+                )
+                Text(
+                    text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(4.dp)
+                )
+                Text(
+                    text = "Location: ${event.location}",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(4.dp)
+                )
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.aveiroplus
 
 import android.content.ContentProvider
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
@@ -54,8 +55,10 @@ import coil.request.SuccessResult
 import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.MapMarker
 import com.example.aveiroplus.components.UserProfile
+import com.example.aveiroplus.services.ForegroundLocationService
 import com.example.aveiroplus.uiStates.MapUiState
 import com.example.aveiroplus.viewModels.MapViewModel
+import com.example.aveiroplus.viewModels.SharedPreferenceUtil
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -78,7 +81,7 @@ val usr = UserProfile()
 val mapViewModel = MapViewModel()
 
 @Composable
-fun MapScreen(navController: NavController) {
+fun MapScreen(navController: NavController, locationService: ForegroundLocationService, requestForegroundPermissions: () ->Unit, foregroundPermissionApproved: () -> Boolean, sharedPreferences: SharedPreferences) {
 
     val mapUiState by mapViewModel.uiState.collectAsState()
 
@@ -87,6 +90,17 @@ fun MapScreen(navController: NavController) {
 
 
     LaunchedEffect(Unit) {
+        val enabled = sharedPreferences.getBoolean(
+            SharedPreferenceUtil.KEY_FOREGROUND_ENABLED, false
+        )
+        if (!enabled) {
+            if (foregroundPermissionApproved()) {
+                locationService.listenToLocation()
+            } else {
+                requestForegroundPermissions()
+            }
+        }
+
         runBlocking() {
             mapViewModel.getMapMarkers()
             mapViewModel.getYourMarker()

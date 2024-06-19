@@ -184,24 +184,6 @@ fun MainScreen(locationService: ForegroundLocationService, requestForegroundPerm
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-
-                            onClick = {
-                                val enabled = sharedPreferences.getBoolean(
-                                    SharedPreferenceUtil.KEY_FOREGROUND_ENABLED, false
-                                )
-                                if (!enabled) {
-                                    if (foregroundPermissionApproved()) {
-                                        locationService.listenToLocation()
-                                    } else {
-                                        requestForegroundPermissions()
-                                    }
-                                }
-                            }) {
-                            Text(text = "Start receiving location updates")
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
                         HomeScreen(
                             navController,
                             sharedPreferences,
@@ -212,7 +194,7 @@ fun MainScreen(locationService: ForegroundLocationService, requestForegroundPerm
                     }
                 }
                 composable("admin") { AdminScreen(navController) }
-                composable("map") { MapScreen(navController) }
+                composable("map") { MapScreen(navController, locationService, requestForegroundPermissions, foregroundPermissionApproved, sharedPreferences) }
                 composable("profile") { ProfileContent(navController) }
                 composable("new_event") { NewEventScreen(navController = navController) }
                 composable(

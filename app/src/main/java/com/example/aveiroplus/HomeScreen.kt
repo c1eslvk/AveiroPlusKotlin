@@ -1,5 +1,6 @@
 package com.example.aveiroplus
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.aveiroplus.components.Event
+import com.example.aveiroplus.services.ForegroundLocationService
+import com.example.aveiroplus.viewModels.SharedPreferenceUtil
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -47,11 +51,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, sharedPreferences: SharedPreferences, locationService: ForegroundLocationService, requestForegroundPermissions: () ->Unit, foregroundPermissionApproved: () -> Boolean) {
     var events by remember { mutableStateOf<List<Event>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
-
     // Fetch events from Firestore
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
@@ -150,7 +153,10 @@ fun EventItem(event: Event, navController: NavController) {
             Column(
                 modifier = Modifier
                     .padding(16.dp)
-                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp)),
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(

@@ -48,6 +48,7 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var debugMessage by remember { mutableStateOf<String?>(null) }
     var isRegistered by remember { mutableStateOf(false) }
+    var hasPaid by remember { mutableStateOf(false) }
     var isImageDialogOpen by remember { mutableStateOf(false) }
 
     val auth = FirebaseAuth.getInstance()
@@ -84,6 +85,10 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
             isRegistered = user?.registeredEventsIds?.contains(eventId) ?: false
             debugMessage += "\nUser is registered: $isRegistered"
 
+            // Check if user has paid for the event
+            hasPaid = user?.paidEventsIds?.contains(eventId) ?: false
+            debugMessage += "\nUser has paid: $hasPaid"
+
             // Fetch profiles of registered users
             val registeredUsersIds = event?.registeredUsersIds ?: emptyList()
             val users = registeredUsersIds.mapNotNull { userId ->
@@ -101,135 +106,149 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
         }
     }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (errorMessage != null) {
-            Text(
-                text = errorMessage!!,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
-            )
-        } else if (event == null) {
-            CircularProgressIndicator()
-        } else {
-            // Event details UI
-            Image(
-                painter = rememberAsyncImagePainter(event?.imageUrl),
-                contentDescription = event?.eventName,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .clickable { isImageDialogOpen = true },
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = event?.eventName ?: "",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Available places: ${event?.availablePlaces}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Price: ${event?.price} EUR",  // Displaying price here
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = event?.description ?: "",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (isRegistered) {
+        item {
+            if (errorMessage != null) {
                 Text(
-                    text = "You are registered",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Button(
-                    onClick = {
-                        // Unregister user from the event
-                        unregisterFromEvent(event!!, user!!, db) { success, error ->
-                            if (success) {
-                                isRegistered = false
-                                event = event?.copy(availablePlaces = event!!.availablePlaces + 1)
-                            } else {
-                                errorMessage = error
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                ) {
-                    Text("Unregister")
-                }
-            } else if (event?.availablePlaces == 0) {
-                Text(
-                    text = "Event is full",
+                    text = errorMessage!!,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error
                 )
+            } else if (event == null) {
+                CircularProgressIndicator()
             } else {
-                Button(
-                    onClick = {
-                        // Register user for the event
-                        registerForEvent(event!!, user!!, db) { success, error ->
-                            if (success) {
-                                isRegistered = true
-                                event = event?.copy(availablePlaces = event!!.availablePlaces - 1)
-                            } else {
-                                errorMessage = error
+                // Event details UI
+                Image(
+                    painter = rememberAsyncImagePainter(event?.imageUrl),
+                    contentDescription = event?.eventName,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .clickable { isImageDialogOpen = true },
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = event?.eventName ?: "",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Available places: ${event?.availablePlaces}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Price: ${event?.price} EUR",  // Displaying price here
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = event?.description ?: "",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (isRegistered) {
+                    Text(
+                        text = "You are registered",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (hasPaid) {
+                        Text(
+                            text = "You have paid for this event",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Text(
+                            text = "You have not paid for this event",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            // Unregister user from the event
+                            unregisterFromEvent(event!!, user!!, db) { success, error ->
+                                if (success) {
+                                    isRegistered = false
+                                    event = event?.copy(availablePlaces = event!!.availablePlaces + 1)
+                                } else {
+                                    errorMessage = error
+                                }
                             }
-                        }
-                    },
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text("Unregister")
+                    }
+                } else if (event?.availablePlaces == 0) {
+                    Text(
+                        text = "Event is full",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                } else {
+                    Button(
+                        onClick = {
+                            // Register user for the event
+                            registerForEvent(event!!, user!!, db) { success, error ->
+                                if (success) {
+                                    isRegistered = true
+                                    event = event?.copy(availablePlaces = event!!.availablePlaces - 1)
+                                } else {
+                                    errorMessage = error
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text("Register")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { navController.popBackStack() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Text("Register")
+                    Text("Go Back")
                 }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { navController.popBackStack() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Text("Go Back")
-            }
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Registered users list
-            Text(
-                text = "Registered Users:",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            LazyColumn {
-                items(registeredUsers) { userProfile ->
-                    UserProfileRow(userProfile)
-                }
+                // Registered users list
+                Text(
+                    text = "Registered Users:",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+        }
+
+        items(registeredUsers) { userProfile ->
+            UserProfileRow(userProfile)
         }
     }
 
@@ -270,6 +289,7 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
         }
     }
 }
+
 
 @Composable
 fun UserProfileRow(userProfile: UserProfile) {

@@ -68,8 +68,9 @@ fun YourEventsScreen(firestore: FirebaseFirestore, navController: NavController)
                     registeredEventsIds = registeredEventsIds
                 )
 
-                // Fetch events based on registeredEventsIds
-                events.value = loadEvents(userProfile.value!!, firestore).sortedBy { it.eventDate }
+// Fetch events based on registeredEventsIds
+                events.value = loadEvents(userProfile.value!!, firestore).sortedByDescending { it.eventDate }
+
             } catch (e: Exception) {
                 Toast.makeText(context, "Failed to fetch user profile and events: ${e.message}", Toast.LENGTH_SHORT).show()
             }

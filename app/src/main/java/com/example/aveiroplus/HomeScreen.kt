@@ -168,11 +168,11 @@ fun EventItem(event: Event, navController: NavController) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(4.dp)
                 )
-                Text(
-                    text = event.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(4.dp)
-                )
+//                Text(
+//                    text = event.description,
+//                    style = MaterialTheme.typography.bodySmall,
+//                    modifier = Modifier.padding(4.dp)
+//                )
                 Text(
                     text = "Date: ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(event.eventDate)}",
                     style = MaterialTheme.typography.bodySmall,

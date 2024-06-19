@@ -1,8 +1,10 @@
 package com.example.aveiroplus
 
-import android.view.View
-import android.widget.ImageView
-import android.widget.ScrollView
+import android.content.ContentProvider
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -12,23 +14,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,36 +41,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.navigation.NavController
+import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.MapMarker
 import com.example.aveiroplus.components.UserProfile
 import com.example.aveiroplus.uiStates.MapUiState
 import com.example.aveiroplus.viewModels.MapViewModel
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PinConfig
 import com.google.maps.android.compose.AdvancedMarker
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerInfoWindow
-import com.google.maps.android.compose.MarkerInfoWindowContent
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.runBlocking
+import java.net.URL
+
+
+
+
 
 val usr = UserProfile()
 val mapViewModel = MapViewModel()
 
 @Composable
-fun MapScreen() {
+fun MapScreen(navController: NavController) {
 
     val mapUiState by mapViewModel.uiState.collectAsState()
 
@@ -80,55 +90,83 @@ fun MapScreen() {
         runBlocking() {
             mapViewModel.getMapMarkers()
             mapViewModel.getYourMarker()
+            mapViewModel.getYourEvents()
         }
-        cameraPositionState.position =  CameraPosition.fromLatLngZoom(LatLng(mapUiState.yourMarker.lat, mapUiState.yourMarker.long), 10f)
+        cameraPositionState.position =  CameraPosition.fromLatLngZoom(LatLng(mapUiState.yourMarker.lat, mapUiState.yourMarker.long), 1f)
     }
 
 
-    Surface(
+    Box(
 
     )
     {
-        GoogleMap(
-            cameraPositionState = cameraPositionState,
-            onMapClick = { mapViewModel.changeUserVisibility(mapUiState.isInfoVisible)}
-        ) {
+        if (mapUiState.isMapReady){
+            GoogleMap(
+                cameraPositionState = cameraPositionState,
+                onMapClick = { mapViewModel.changeUserVisibility(mapUiState.isInfoVisible) }
+            ) {
 
-            for (marker in mapUiState.markers) {
-                CreateMarker(markerData = marker, uiState = mapUiState)
+                for (marker in mapUiState.markers) {
+                    CreateMarker(markerData = marker, uiState = mapUiState, photoString = marker.relatedUser.profileImageUrl)
+                }
+                
+                for (eventMarker in mapUiState.yourEvents) {
+                    CreateEventMarker(event = eventMarker, uiState = mapUiState, navController = navController)
+                }
+
             }
-
-
-        }
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            if (mapUiState.isInfoVisible) {
-                ShowUserInfo(mapUiState.userToShow, mapUiState)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                if (mapUiState.isInfoVisible) {
+                    ShowUserInfo(mapUiState.userToShow, mapUiState, navController)
+                }
             }
+        } else {
+            CircularProgressIndicator(modifier = Modifier
+                .wrapContentSize()
+                .align(Alignment.Center))
         }
 
     }
 }
 
 @Composable
-fun CreateMarker(markerData: MapMarker, uiState: MapUiState) {
-
-
-    return AdvancedMarker(state = MarkerState(LatLng(markerData.lat, markerData.long)),
+fun CreateEventMarker(event: Event, uiState: MapUiState, navController: NavController) {
+    return Marker(
+        state = MarkerState(LatLng(event.lat, event.long)),
         onClick = {
-            mapViewModel.assignUserToView(markerData.relatedUser)
-            mapViewModel.changeUserVisibility(uiState.isInfoVisible)
-            runBlocking {
-                mapViewModel.getUserEvents(markerData.relatedUser.registeredEventsIds)
-            }
-            return@AdvancedMarker false
-        })
+            navController.navigate("event_detail/${event.eventId}")
+            return@Marker false
+        },
+        icon = BitmapDescriptorFactory.defaultMarker(
+            BitmapDescriptorFactory.HUE_BLUE
+        )
+
+    )
+}
+@Composable
+fun CreateMarker(markerData: MapMarker, uiState: MapUiState, photoString: String) {
+
+        return Marker(
+            state = MarkerState(LatLng(markerData.lat, markerData.long)),
+            onClick = {
+                mapViewModel.assignUserToView(markerData.relatedUser)
+                mapViewModel.changeUserVisibility(uiState.isInfoVisible)
+                runBlocking {
+                    mapViewModel.getUserEvents(markerData.relatedUser.registeredEventsIds)
+                }
+                return@Marker false
+            },
+            icon = BitmapDescriptorFactory.defaultMarker(
+                BitmapDescriptorFactory.HUE_RED
+            )
+        )
 }
 
 @Composable
-fun ShowUserInfo(usr: UserProfile, uiState: MapUiState) {
+fun ShowUserInfo(usr: UserProfile, uiState: MapUiState, navController: NavController) {
     val painter = rememberAsyncImagePainter(
         ImageRequest.Builder(LocalContext.current)
             .data(data = usr.profileImageUrl.takeIf { it.isNotEmpty() } ?: R.drawable.blank_profile)
@@ -146,16 +184,17 @@ fun ShowUserInfo(usr: UserProfile, uiState: MapUiState) {
                 placeholder(R.drawable.blank_profile)
             }.build()
     )
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .height(400.dp)
-        .background(Color.White)
-        .padding(16.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(500.dp)
+            .background(Color.White)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     )
     {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
             contentAlignment = Alignment.TopStart,
         ){
             Image(
@@ -181,56 +220,78 @@ fun ShowUserInfo(usr: UserProfile, uiState: MapUiState) {
                 .clip(CircleShape), // Clip to a circle shape
             contentScale = ContentScale.Crop
         )
-        Text(text = usr.name + " " + usr.surname)
-        Spacer(modifier = Modifier.width(100.dp))
+        Spacer(modifier = Modifier.width(20.dp))
+        Text(
+        text = usr.name + " " + usr.surname,
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = Modifier.padding(4.dp),
+        color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(30.dp))
+        Text(
+            text = "user events:",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(4.dp),
+            color = MaterialTheme.colorScheme.secondary
+        )
         Surface(
-            modifier = Modifier.fillMaxSize()
+           // modifier = Modifier.fillMaxSize()
         ) {
             val scrollState = rememberScrollState()
-            ScrollableColumn(scrollState = scrollState, uiState)
+            ScrollableColumn(scrollState = scrollState, uiState, navController = navController)
         }
 
     }
 }
 
 @Composable
-fun ScrollableColumn(scrollState: ScrollState, uiState: MapUiState){
+fun ScrollableColumn(scrollState: ScrollState, uiState: MapUiState, navController: NavController){
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
         for(event in uiState.eventsToShow) {
-
+            Surface(
+                modifier = Modifier.padding(16.dp)
+                    .clickable { navController.navigate("event_detail/${event.eventId}") },
+                shape = RoundedCornerShape(12.dp),
+                color = Color.LightGray,
+            ){
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Image(
-                    painter = rememberAsyncImagePainter(event.imageUrl),
-                    contentDescription = "Event Image",
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .size(100.dp),
-                    contentScale = ContentScale.Crop
-                )
-                Column (
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ){
-                    Text(text = event.eventName,
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        color = MaterialTheme.colorScheme.primary )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(text = event.location,
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        color = MaterialTheme.colorScheme.secondary)
+                    Image(
+                        painter = rememberAsyncImagePainter(event.imageUrl),
+                        contentDescription = "Event Image",
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .size(140.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = event.eventName,
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = event.location,
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
-
                 
             }
         }

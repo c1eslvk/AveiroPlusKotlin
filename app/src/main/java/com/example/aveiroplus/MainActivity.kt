@@ -101,7 +101,7 @@ fun MainScreen() {
             ) {
                 composable("home") { HomeScreen(navController) }
                 composable("admin") { AdminScreen(navController) }
-                composable("map") { MapScreen() }
+                composable("map") { MapScreen(navController) }
                 composable("profile") { ProfileContent(navController) }
                 composable("new_event") { NewEventScreen(navController = navController) }
                 composable(

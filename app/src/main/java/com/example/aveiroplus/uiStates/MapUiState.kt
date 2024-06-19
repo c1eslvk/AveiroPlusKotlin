@@ -9,6 +9,10 @@ data class MapUiState(
     val yourMarker: MapMarker = MapMarker(),
     val userToShow: UserProfile = UserProfile(),
     val isInfoVisible: Boolean = false,
-    val eventsToShow: List<Event> = emptyList()
+    val eventsToShow: List<Event> = emptyList(),
+    val isMapReady: Boolean = false,
+    val yourEvents: List<Event> = emptyList(),
+    val eventToShow: Event = Event(),
+    val eventVisibility: Boolean = false
 ) {
 }

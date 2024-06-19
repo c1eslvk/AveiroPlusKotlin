@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.UserProfile
 import com.google.firebase.firestore.FieldPath
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
 class MapViewModel: ViewModel()  {
@@ -25,8 +26,17 @@ class MapViewModel: ViewModel()  {
     private val firestore = FirebaseFirestore.getInstance()
 
     init {
-        getMapMarkers()
-        getYourMarker()
+        _uiState.update {
+            it.copy(isMapReady = false)
+        }
+        runBlocking {
+            getMapMarkers()
+            getYourMarker()
+            getYourEvents()
+        }
+        _uiState.update {
+            it.copy(isMapReady = true)
+        }
     }
     fun getMapMarkers() {
         var newMarkers by mutableStateOf<List<MapMarker>>(emptyList())
@@ -40,6 +50,41 @@ class MapViewModel: ViewModel()  {
 
     }
 
+    fun getYourEvents() {
+        firestore.collection("users").document(firebaseAuth.currentUser?.uid?: "")
+            .get().addOnSuccessListener { result ->
+                val user = result.toObject(UserProfile::class.java)
+                runBlocking {
+                    val events = mutableListOf<Event>()
+
+                    for (eventId in user?.registeredEventsIds ?: emptyList()) {
+                        try {
+                            val eventDocument =
+                                firestore.collection("events").document(eventId).get().await()
+                            val eventName = eventDocument.getString("eventName") ?: "N/A"
+                            val imageUrl = eventDocument.getString("imageUrl") ?: ""
+                            val location = eventDocument.getString("location") ?: ""
+                            val lat = eventDocument.getDouble("lat") ?: 0.0
+                            val long = eventDocument.getDouble("long") ?: 0.0
+
+                            val event = Event(
+                                eventId = eventId,
+                                eventName = eventName,
+                                imageUrl = imageUrl,
+                                location = location,
+                                lat = lat,
+                                long = long
+                            )
+                            events.add(event)
+                        } catch (e: Exception) {
+                        }
+                    }
+                    _uiState.update {
+                        it.copy(yourEvents = events)
+                    }
+                }
+            }
+    }
     suspend fun getUserEvents(eventsIds: List<String>){
         val events = mutableListOf<Event>()
 
@@ -48,11 +93,17 @@ class MapViewModel: ViewModel()  {
                 val eventDocument = firestore.collection("events").document(eventId).get().await()
                 val eventName = eventDocument.getString("eventName") ?: "N/A"
                 val imageUrl = eventDocument.getString("imageUrl") ?: ""
+                val location = eventDocument.getString("location") ?: ""
+                val lat = eventDocument.getDouble("lat") ?: 0.0
+                val long = eventDocument.getDouble("long") ?: 0.0
 
                 val event = Event(
                     eventId = eventId,
                     eventName = eventName,
-                    imageUrl = imageUrl
+                    imageUrl = imageUrl,
+                    location = location,
+                    lat = lat,
+                    long = long
                 )
                 events.add(event)
             } catch (e: Exception) { }
@@ -80,7 +131,21 @@ class MapViewModel: ViewModel()  {
         }
     }
 
+
     fun changeUserVisibility(visibility: Boolean) {
+        _uiState.update {
+            it.copy(isInfoVisible = !visibility)
+        }
+    }
+
+    fun assignEventToView(event: Event) {
+        _uiState.update {
+            it.copy(eventToShow = event)
+        }
+    }
+
+
+    fun changeEventVisibility(visibility: Boolean) {
         _uiState.update {
             it.copy(isInfoVisible = !visibility)
         }

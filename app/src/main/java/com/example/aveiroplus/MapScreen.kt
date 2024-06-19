@@ -62,6 +62,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PinConfig
 import com.google.maps.android.compose.AdvancedMarker
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
@@ -81,8 +82,7 @@ fun MapScreen(navController: NavController) {
 
     val mapUiState by mapViewModel.uiState.collectAsState()
 
-    val cameraPositionState = rememberCameraPositionState()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    val cameraPositionState = CameraPositionState()
 
 
 
@@ -92,7 +92,7 @@ fun MapScreen(navController: NavController) {
             mapViewModel.getYourMarker()
             mapViewModel.getYourEvents()
         }
-        cameraPositionState.position =  CameraPosition.fromLatLngZoom(LatLng(mapUiState.yourMarker.lat, mapUiState.yourMarker.long), 1f)
+        cameraPositionState.position =  CameraPosition.fromLatLngZoom(LatLng(mapUiState.yourMarker.lat, mapUiState.yourMarker.long), 3f)
     }
 
 
@@ -202,7 +202,7 @@ fun ShowUserInfo(usr: UserProfile, uiState: MapUiState, navController: NavContro
                 contentDescription = "close tab",
                 modifier = Modifier
                     .size(50.dp)
-                    .padding(16.dp)
+                    .padding(8.dp)
                     .clip(CircleShape)
                     .clickable {
                         mapViewModel.changeUserVisibility(uiState.isInfoVisible)
@@ -215,12 +215,11 @@ fun ShowUserInfo(usr: UserProfile, uiState: MapUiState, navController: NavContro
             painter = painter,
             contentDescription = "Profile Picture",
             modifier = Modifier
-                .size(100.dp)
+                .size(150.dp)
                 .padding(4.dp)
                 .clip(CircleShape), // Clip to a circle shape
             contentScale = ContentScale.Crop
         )
-        Spacer(modifier = Modifier.width(20.dp))
         Text(
         text = usr.name + " " + usr.surname,
         style = MaterialTheme.typography.headlineMedium,

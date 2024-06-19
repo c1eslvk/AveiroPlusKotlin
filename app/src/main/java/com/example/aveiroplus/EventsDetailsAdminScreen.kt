@@ -2,28 +2,12 @@ package com.example.aveiroplus
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,6 +83,28 @@ fun EventDetailAdminScreen(navController: NavController, eventId: String) {
         }
     }
 
+    // Function to toggle paid status
+    fun togglePaid(userId: String, isPaid: Boolean) {
+        val userRef = db.collection("users").document(userId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef)
+            val user = snapshot.toObject(UserProfile::class.java)
+            if (user != null) {
+                val updatedPaidEventsIds = if (isPaid) {
+                    user.paidEventsIds + eventId
+                } else {
+                    user.paidEventsIds - eventId
+                }
+                transaction.update(userRef, "paidEventsIds", updatedPaidEventsIds)
+            }
+        }.addOnSuccessListener {
+            // Handle success (optional)
+        }.addOnFailureListener { e ->
+            // Handle failure (optional)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -167,7 +173,7 @@ fun EventDetailAdminScreen(navController: NavController, eventId: String) {
             )
             LazyColumn {
                 items(registeredUsers) { userProfile ->
-                    UserProfileRow(userProfile)
+                    UserProfileRow(userProfile, eventId, ::togglePaid)
                 }
             }
         }
@@ -207,6 +213,48 @@ fun EventDetailAdminScreen(navController: NavController, eventId: String) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun UserProfileRow(userProfile: UserProfile, eventId: String, onTogglePaid: (String, Boolean) -> Unit) {
+    var isPaid by remember { mutableStateOf(userProfile.paidEventsIds.contains(eventId)) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(userProfile.profileImageUrl),
+            contentDescription = userProfile.name,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(text = "${userProfile.name} ${userProfile.surname}", style = MaterialTheme.typography.bodyMedium)
+        }
+        Button(
+            onClick = {
+                isPaid = !isPaid
+                onTogglePaid(userProfile.uid, isPaid)
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isPaid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .size(100.dp, 36.dp)
+        ) {
+            Text(if (isPaid) "Paid" else "UnPaid")
         }
     }
 }

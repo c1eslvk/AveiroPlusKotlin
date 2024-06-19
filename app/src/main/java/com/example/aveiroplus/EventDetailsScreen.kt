@@ -152,6 +152,24 @@ fun EventDetailsScreen(navController: NavController, eventId: String) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+                Button(
+                    onClick = {
+                        // Unregister user from the event
+                        unregisterFromEvent(event!!, user!!, db) { success, error ->
+                            if (success) {
+                                isRegistered = false
+                                event = event?.copy(availablePlaces = event!!.availablePlaces + 1)
+                            } else {
+                                errorMessage = error
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text("Unregister")
+                }
             } else if (event?.availablePlaces == 0) {
                 Text(
                     text = "Event is full",
@@ -293,6 +311,34 @@ fun registerForEvent(event: Event, user: UserProfile, db: FirebaseFirestore, cal
 
         // Update user
         val newRegisteredEventsIds = user.registeredEventsIds + event.eventId
+        transaction.update(userRef, "registeredEventsIds", newRegisteredEventsIds)
+    }.addOnSuccessListener {
+        callback(true, null)
+    }.addOnFailureListener { exception ->
+        callback(false, exception.message)
+    }
+}
+
+fun unregisterFromEvent(event: Event, user: UserProfile, db: FirebaseFirestore, callback: (Boolean, String?) -> Unit) {
+    val eventRef = db.collection("events").document(event.eventId)
+    val userRef = db.collection("users").document(user.uid)
+
+    db.runTransaction { transaction ->
+        val snapshot = transaction.get(eventRef)
+        val currentEvent = snapshot.toObject(Event::class.java)
+
+        if (currentEvent == null || !currentEvent.registeredUsersIds.contains(user.uid)) {
+            throw Exception("User is not registered for this event")
+        }
+
+        // Update event
+        val newAvailablePlaces = currentEvent.availablePlaces + 1
+        val newRegisteredUsersIds = currentEvent.registeredUsersIds - user.uid
+        transaction.update(eventRef, "availablePlaces", newAvailablePlaces)
+        transaction.update(eventRef, "registeredUsersIds", newRegisteredUsersIds)
+
+        // Update user
+        val newRegisteredEventsIds = user.registeredEventsIds - event.eventId
         transaction.update(userRef, "registeredEventsIds", newRegisteredEventsIds)
     }.addOnSuccessListener {
         callback(true, null)

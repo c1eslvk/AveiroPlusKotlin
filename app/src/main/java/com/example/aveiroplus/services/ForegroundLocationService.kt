@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.example.aveiroplus.components.Event
 import com.example.aveiroplus.components.MapMarker
 import com.example.aveiroplus.components.UserProfile
+import com.example.aveiroplus.viewModels.SharedPreferenceUtil
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationServices
@@ -64,6 +65,21 @@ class ForegroundLocationService(
 
 
         client.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
+    }
+
+    fun stopListenToLocation() {
+
+        try {
+            val removeTask = client.removeLocationUpdates(locationCallback)
+            removeTask.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    stopSelf()
+                }
+            }
+            SharedPreferenceUtil.saveLocationTrackingPref(this, false)
+        } catch (unlikely: SecurityException) {
+            SharedPreferenceUtil.saveLocationTrackingPref(this, true)
+        }
     }
 
     suspend fun saveToDb(location: Location) {
